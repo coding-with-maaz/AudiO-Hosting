@@ -30,6 +30,17 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Log error for debugging
+    if (process.env.NODE_ENV === 'development') {
+      console.error('API Error:', {
+        url: error.config?.url,
+        method: error.config?.method,
+        status: error.response?.status,
+        data: error.response?.data,
+        message: error.message,
+      });
+    }
+
     if (error.response?.status === 401) {
       // Unauthorized - clear token and redirect to login
       if (typeof window !== 'undefined') {

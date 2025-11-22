@@ -16,6 +16,10 @@ export function useLogin() {
         router.push('/dashboard');
       }
     },
+    onError: (error: any) => {
+      console.error('Login error:', error);
+      throw error;
+    },
   });
 }
 
@@ -36,6 +40,10 @@ export function useRegister() {
         setAuth(data.data.user, data.data.token);
         router.push('/dashboard');
       }
+    },
+    onError: (error: any) => {
+      console.error('Registration error:', error);
+      throw error;
     },
   });
 }

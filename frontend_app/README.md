@@ -1,36 +1,94 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Audio Hosting Platform - Frontend
 
-## Getting Started
+This is the Next.js frontend application for the Audio Hosting Platform.
 
-First, run the development server:
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js 18+ installed
+- Backend server running on `http://localhost:3000`
+
+### Installation
+
+1. **Install dependencies**
+```bash
+npm install
+```
+
+2. **Configure environment variables**
+
+Create a `.env.local` file in the root directory:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3000
+```
+
+**Important:** Make sure your backend server is running on port 3000, or update the URL accordingly.
+
+3. **Start the development server**
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The frontend will run on `http://localhost:3001` (or the next available port).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Verify Backend Connection
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Visit `http://localhost:3001/api/test` to check if the backend is accessible.
 
-## Learn More
+## 🔧 Configuration
 
-To learn more about Next.js, take a look at the following resources:
+### Environment Variables
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `NEXT_PUBLIC_API_URL` - Backend API URL (default: `http://localhost:3000`)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Backend CORS Configuration
 
-## Deploy on Vercel
+Make sure your backend `.env` file includes the frontend URL in CORS_ORIGIN:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```env
+CORS_ORIGIN=http://localhost:3001,http://localhost:3000
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📁 Project Structure
+
+```
+src/
+├── app/              # Next.js app router pages
+├── components/       # React components
+├── hooks/           # React Query hooks
+├── lib/             # API client and utilities
+├── store/           # Zustand state management
+├── types/           # TypeScript types
+└── utils/           # Helper functions
+```
+
+## 🛠️ Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
+
+## 🐛 Troubleshooting
+
+### 404 Errors on API Calls
+
+1. **Check backend is running**: Make sure the backend server is running on port 3000
+2. **Check CORS**: Verify backend CORS allows your frontend origin
+3. **Check API URL**: Verify `NEXT_PUBLIC_API_URL` in `.env.local` matches your backend URL
+4. **Check network**: Open browser DevTools Network tab to see the actual request URL
+
+### Common Issues
+
+- **Port conflict**: If port 3000 is taken, Next.js will use 3001. Update backend CORS accordingly.
+- **CORS errors**: Add your frontend URL to backend `CORS_ORIGIN` environment variable.
+- **404 on /api/auth/register**: Ensure backend server is running and routes are properly configured.
+
+## 📚 Learn More
+
+- [Next.js Documentation](https://nextjs.org/docs)
+- [React Query Documentation](https://tanstack.com/query/latest)
+- [Zustand Documentation](https://zustand-demo.pmnd.rs/)
