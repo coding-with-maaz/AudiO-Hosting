@@ -34,31 +34,24 @@ api.interceptors.response.use(
     if (process.env.NODE_ENV === 'development') {
       const errorInfo: Record<string, any> = {};
       
-      if (error?.config) {
-        errorInfo.url = error.config.url;
-        errorInfo.method = error.config.method;
-        errorInfo.baseURL = error.config.baseURL;
-      }
+      // Only add properties that actually have values
+      if (error?.config?.url) errorInfo.url = error.config.url;
+      if (error?.config?.method) errorInfo.method = error.config.method;
+      if (error?.config?.baseURL) errorInfo.baseURL = error.config.baseURL;
+      if (error?.response?.status) errorInfo.status = error.response.status;
+      if (error?.response?.statusText) errorInfo.statusText = error.response.statusText;
+      if (error?.response?.data) errorInfo.data = error.response.data;
+      if (error?.message) errorInfo.message = error.message;
+      if (error?.code) errorInfo.code = error.code;
       
-      if (error?.response) {
-        errorInfo.status = error.response.status;
-        errorInfo.statusText = error.response.statusText;
-        errorInfo.data = error.response.data;
-      }
-      
-      if (error?.message) {
-        errorInfo.message = error.message;
-      }
-      
-      if (error?.code) {
-        errorInfo.code = error.code;
-      }
-      
-      // Only log if we have some error information
+      // Log error information
       if (Object.keys(errorInfo).length > 0) {
         console.error('API Error:', errorInfo);
+      } else if (error) {
+        // If error exists but has no structured info, log it directly
+        console.error('API Error: Unknown error structure', error);
       } else {
-        console.error('API Error: Unknown error', error);
+        console.error('API Error: No error object provided');
       }
     }
 
