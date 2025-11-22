@@ -69,8 +69,8 @@ export function useDisableFolderSharing() {
 
   return useMutation({
     mutationFn: (id: string) => folderAPI.disableSharing(id).then(res => res.data),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['folder', variables.id] });
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: ['folder', id] });
     },
   });
 }
