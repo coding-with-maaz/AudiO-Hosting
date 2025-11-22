@@ -33,7 +33,12 @@ export default function LoginPage() {
     try {
       await login.mutateAsync(data);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed');
+      console.error('Login error:', err);
+      const errorMessage = err?.response?.data?.message || 
+                          err?.response?.data?.errors?.[0]?.msg ||
+                          err?.message || 
+                          'Login failed. Please check your connection and try again.';
+      setError(errorMessage);
     }
   };
 

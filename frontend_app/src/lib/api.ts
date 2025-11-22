@@ -32,16 +32,37 @@ api.interceptors.response.use(
   (error) => {
     // Log error for debugging
     if (process.env.NODE_ENV === 'development') {
-      console.error('API Error:', {
-        url: error.config?.url,
-        method: error.config?.method,
-        status: error.response?.status,
-        data: error.response?.data,
-        message: error.message,
-      });
+      const errorInfo: Record<string, any> = {};
+      
+      if (error?.config) {
+        errorInfo.url = error.config.url;
+        errorInfo.method = error.config.method;
+        errorInfo.baseURL = error.config.baseURL;
+      }
+      
+      if (error?.response) {
+        errorInfo.status = error.response.status;
+        errorInfo.statusText = error.response.statusText;
+        errorInfo.data = error.response.data;
+      }
+      
+      if (error?.message) {
+        errorInfo.message = error.message;
+      }
+      
+      if (error?.code) {
+        errorInfo.code = error.code;
+      }
+      
+      // Only log if we have some error information
+      if (Object.keys(errorInfo).length > 0) {
+        console.error('API Error:', errorInfo);
+      } else {
+        console.error('API Error: Unknown error', error);
+      }
     }
 
-    if (error.response?.status === 401) {
+    if (error?.response?.status === 401) {
       // Unauthorized - clear token and redirect to login
       if (typeof window !== 'undefined') {
         localStorage.removeItem('token');
