@@ -32,26 +32,25 @@ api.interceptors.response.use(
   (error) => {
     // Log error for debugging
     if (process.env.NODE_ENV === 'development') {
-      const errorInfo: Record<string, any> = {};
+      const errorParts: string[] = [];
       
-      // Only add properties that actually have values
-      if (error?.config?.url) errorInfo.url = error.config.url;
-      if (error?.config?.method) errorInfo.method = error.config.method;
-      if (error?.config?.baseURL) errorInfo.baseURL = error.config.baseURL;
-      if (error?.response?.status) errorInfo.status = error.response.status;
-      if (error?.response?.statusText) errorInfo.statusText = error.response.statusText;
-      if (error?.response?.data) errorInfo.data = error.response.data;
-      if (error?.message) errorInfo.message = error.message;
-      if (error?.code) errorInfo.code = error.code;
+      // Build error message parts
+      if (error?.config?.method) errorParts.push(`Method: ${error.config.method}`);
+      if (error?.config?.url) errorParts.push(`URL: ${error.config.url}`);
+      if (error?.config?.baseURL) errorParts.push(`BaseURL: ${error.config.baseURL}`);
+      if (error?.response?.status) errorParts.push(`Status: ${error.response.status}`);
+      if (error?.response?.statusText) errorParts.push(`StatusText: ${error.response.statusText}`);
+      if (error?.message) errorParts.push(`Message: ${error.message}`);
+      if (error?.code) errorParts.push(`Code: ${error.code}`);
       
       // Log error information
-      if (Object.keys(errorInfo).length > 0) {
-        console.error('API Error:', errorInfo);
-      } else if (error) {
-        // If error exists but has no structured info, log it directly
-        console.error('API Error: Unknown error structure', error);
+      if (errorParts.length > 0) {
+        console.error('API Error:', errorParts.join(' | '));
+        if (error?.response?.data) {
+          console.error('Error Data:', error.response.data);
+        }
       } else {
-        console.error('API Error: No error object provided');
+        console.error('API Error: Unknown error', error);
       }
     }
 
