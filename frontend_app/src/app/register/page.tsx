@@ -36,7 +36,12 @@ export default function RegisterPage() {
     try {
       await register.mutateAsync(data);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Registration failed');
+      console.error('Registration error:', err);
+      const errorMessage = err.response?.data?.message || 
+                          err.response?.data?.errors?.[0]?.msg ||
+                          err.message || 
+                          'Registration failed. Please check your connection and try again.';
+      setError(errorMessage);
     }
   };
 
