@@ -269,14 +269,17 @@ export default function AudioDetailPage() {
               </label>
               <textarea
                 readOnly
-                value={`<iframe src="${getEmbedLink()}" width="100%" height="100" frameborder="0" allow="autoplay"></iframe>`}
+                value={`<iframe src="${getEmbedLink()}" width="100%" height="500" frameborder="0" allow="autoplay; fullscreen" style="border-radius: 12px;"></iframe>`}
                 rows={3}
                 className="w-full rounded-md border border-gray-300 bg-gray-50 px-3 py-2 font-mono text-sm text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
               />
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Recommended height: 500px for full player, 300px for compact view
+              </p>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => copyToClipboard(`<iframe src="${getEmbedLink()}" width="100%" height="100" frameborder="0" allow="autoplay"></iframe>`, 'embed-code')}
+                onClick={() => copyToClipboard(`<iframe src="${getEmbedLink()}" width="100%" height="500" frameborder="0" allow="autoplay; fullscreen" style="border-radius: 12px;"></iframe>`, 'embed-code')}
                 className="mt-2"
               >
                 {copiedLink === 'embed-code' ? (
