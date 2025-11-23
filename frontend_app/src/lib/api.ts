@@ -158,7 +158,7 @@ export const affiliateAPI = {
 export const interactionAPI = {
   addFavorite: (audioId: string) => api.post(`/interactions/favorites/${audioId}`),
   removeFavorite: (audioId: string) => api.delete(`/interactions/favorites/${audioId}`),
-  getFavorites: () => api.get('/interactions/favorites'),
+  getFavorites: (params?: any) => api.get('/interactions/favorites', { params }),
   addComment: (audioId: string, data: any) => 
     api.post(`/interactions/comments/${audioId}`, data),
   getComments: (audioId: string, params?: any) => 
