@@ -13,6 +13,8 @@ export function usePlaylist(id: string) {
     queryKey: ['playlist', id],
     queryFn: () => playlistAPI.getById(id).then(res => res.data.data.playlist),
     enabled: !!id,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 }
 

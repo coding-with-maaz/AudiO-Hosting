@@ -86,8 +86,12 @@ exports.getPlaylist = async (req, res, next) => {
         {
           model: db.Audio,
           as: 'audios',
-          through: { attributes: ['order', 'addedAt'] },
-          include: [{ model: db.User, as: 'user', attributes: ['id', 'username'] }]
+          through: { 
+            model: db.PlaylistAudio,
+            attributes: ['order', 'addedAt'] 
+          },
+          include: [{ model: db.User, as: 'user', attributes: ['id', 'username'] }],
+          order: [[db.PlaylistAudio, 'order', 'ASC']]
         }
       ]
     });

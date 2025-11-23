@@ -109,15 +109,27 @@ export default function PlaylistDetailPage() {
       return;
     }
     try {
-      await addToPlaylist.mutateAsync({
+      const result = await addToPlaylist.mutateAsync({
         id: playlistId,
         audioIds: selectedAudios,
       });
+      
+      // Close modal and reset
       setShowAddModal(false);
       setSelectedAudios([]);
-      // Refetch playlist to show updated tracks
-      await refetchPlaylist();
+      setSearchQuery('');
+      
+      // Force refetch playlist data
+      setTimeout(async () => {
+        await refetchPlaylist();
+      }, 500);
+      
+      // Show success message
+      if (result?.message) {
+        alert(result.message);
+      }
     } catch (error: any) {
+      console.error('Add to playlist error:', error);
       alert(error?.response?.data?.message || 'Failed to add audios to playlist');
     }
   };
