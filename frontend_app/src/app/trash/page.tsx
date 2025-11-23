@@ -16,9 +16,10 @@ export default function TrashPage() {
   const restoreFromTrash = useRestoreFromTrash();
   const emptyTrash = useEmptyTrash();
 
-  const trashItems = data?.items || [];
-  const audios = trashItems.filter((item: any) => item.type === 'audio' || !item.type);
-  const folders = trashItems.filter((item: any) => item.type === 'folder');
+  // Backend returns { audios: [] } or { folders: [] } based on type
+  const audios = data?.audios || [];
+  const folders = data?.folders || [];
+  const trashItems = [...audios.map((a: any) => ({ ...a, type: 'audio' })), ...folders.map((f: any) => ({ ...f, type: 'folder' }))];
 
   const handleRestore = async (id: string) => {
     if (confirm('Restore this item from trash?')) {
