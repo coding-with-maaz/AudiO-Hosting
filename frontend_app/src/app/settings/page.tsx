@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useProfile, useUpdateProfile, useChangePassword } from '@/hooks/useAuth';
 import { useAuthStore } from '@/store/authStore';
@@ -39,11 +39,11 @@ export default function SettingsPage() {
 
   // Profile form state
   const [profileData, setProfileData] = useState({
-    username: currentUser?.username || '',
-    email: currentUser?.email || '',
-    firstName: currentUser?.firstName || '',
-    lastName: currentUser?.lastName || '',
-    avatar: currentUser?.avatar || '',
+    username: '',
+    email: '',
+    firstName: '',
+    lastName: '',
+    avatar: '',
   });
 
   // Password form state
@@ -54,15 +54,17 @@ export default function SettingsPage() {
   });
 
   // Update profile data when user loads
-  if (currentUser && !profileData.username && currentUser.username) {
-    setProfileData({
-      username: currentUser.username || '',
-      email: currentUser.email || '',
-      firstName: currentUser.firstName || '',
-      lastName: currentUser.lastName || '',
-      avatar: currentUser.avatar || '',
-    });
-  }
+  useEffect(() => {
+    if (currentUser) {
+      setProfileData({
+        username: currentUser.username || '',
+        email: currentUser.email || '',
+        firstName: currentUser.firstName || '',
+        lastName: currentUser.lastName || '',
+        avatar: currentUser.avatar || '',
+      });
+    }
+  }, [currentUser]);
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
