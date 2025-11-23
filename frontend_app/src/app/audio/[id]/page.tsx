@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import axios from 'axios';
+import { AudioPlayer } from '@/components/audio/AudioPlayer';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -172,14 +173,17 @@ export default function AudioDetailPage() {
           <h2 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
             Audio Player
           </h2>
-          <audio
-            controls
-            className="w-full"
+          <AudioPlayer
             src={getDirectLink()}
-            preload="metadata"
-          >
-            Your browser does not support the audio element.
-          </audio>
+            title={audio.title}
+            artist={audio.user?.username}
+            coverImage={audio.thumbnail}
+            autoPlay={false}
+            showDownload={false}
+            showShare={false}
+            showFullscreen={true}
+            className="w-full"
+          />
         </div>
 
         {/* Share Links */}
