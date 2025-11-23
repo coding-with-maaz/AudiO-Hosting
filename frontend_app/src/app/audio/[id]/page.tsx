@@ -20,10 +20,12 @@ import {
   Globe,
   Lock,
   ExternalLink,
+  Settings,
 } from 'lucide-react';
 import { useState } from 'react';
 import axios from 'axios';
 import { AudioPlayer } from '@/components/audio/AudioPlayer';
+import { ShareOptions } from '@/components/audio/ShareOptions';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -32,6 +34,7 @@ export default function AudioDetailPage() {
   const router = useRouter();
   const audioId = params.id as string;
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
+  const [showShareOptions, setShowShareOptions] = useState(false);
 
   const { data: audio, isLoading } = useAudio(audioId);
 
@@ -192,9 +195,32 @@ export default function AudioDetailPage() {
 
         {/* Share Links */}
         <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-          <h2 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
-            Share & Links
-          </h2>
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+              Share & Links
+            </h2>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowShareOptions(!showShareOptions)}
+            >
+              <Settings className="mr-2 h-4 w-4" />
+              {showShareOptions ? 'Hide' : 'Show'} Options
+            </Button>
+          </div>
+
+          {/* Share Options */}
+          {showShareOptions && (
+            <div className="mb-6">
+              <ShareOptions
+                embedUrl={getEmbedLink()}
+                audioTitle={audio.title}
+                audioArtist={audio.user?.username}
+                hasCoverImage={!!audio.thumbnail}
+              />
+            </div>
+          )}
+
           <div className="space-y-4">
             {/* Direct Download Link */}
             <div>

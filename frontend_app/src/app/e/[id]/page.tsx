@@ -1,6 +1,6 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Music } from 'lucide-react';
 import axios from 'axios';
@@ -10,10 +10,18 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 export default function EmbedAudioPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const audioId = params.id as string;
   const [audio, setAudio] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+
+  // Get customization options from URL params
+  const hideTitle = searchParams.get('hideTitle') === 'true';
+  const hideArtist = searchParams.get('hideArtist') === 'true';
+  const hideCover = searchParams.get('hideCover') === 'true';
+  const autoPlay = searchParams.get('autoplay') === 'true';
+  const isCompact = searchParams.get('compact') === 'true';
 
   useEffect(() => {
     fetchAudio();
@@ -95,14 +103,14 @@ export default function EmbedAudioPage() {
         {/* Custom Audio Player */}
         <AudioPlayer
           src={getDirectLink()}
-          title={audio.title}
-          artist={audio.user?.username}
-          coverImage={audio.thumbnail}
-          autoPlay={true}
+          title={hideTitle ? undefined : audio.title}
+          artist={hideArtist ? undefined : audio.user?.username}
+          coverImage={hideCover ? undefined : audio.thumbnail}
+          autoPlay={autoPlay}
           showDownload={true}
           showShare={true}
           showFullscreen={true}
-          className="w-full"
+          className={`w-full ${isCompact ? 'max-w-2xl' : ''}`}
         />
 
         {/* Footer */}
