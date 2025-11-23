@@ -66,10 +66,24 @@ exports.getAffiliateStats = async (req, res, next) => {
       where: { userId: req.user.id }
     });
 
+    // Return empty stats if affiliate doesn't exist (frontend will handle it)
     if (!affiliate) {
-      return res.status(404).json({
-        success: false,
-        message: 'Affiliate account not found'
+      return res.json({
+        success: true,
+        data: {
+          stats: {
+            totalEarnings: 0,
+            pendingEarnings: 0,
+            paidEarnings: 0,
+            totalReferrals: 0,
+            activeReferrals: 0,
+            totalClicks: 0,
+            totalSignups: 0,
+            conversionRate: 0,
+            recentTransactions: []
+          },
+          affiliate: null
+        }
       });
     }
 
@@ -97,13 +111,13 @@ exports.getAffiliateStats = async (req, res, next) => {
 
     // Calculate stats
     const stats = {
-      totalEarnings: parseFloat(affiliate.totalEarnings),
-      pendingEarnings: parseFloat(affiliate.pendingEarnings),
-      paidEarnings: parseFloat(affiliate.paidEarnings),
-      totalReferrals: affiliate.totalReferrals,
-      activeReferrals: affiliate.activeReferrals,
-      totalClicks: affiliate.totalClicks,
-      totalSignups: affiliate.totalSignups,
+      totalEarnings: parseFloat(affiliate.totalEarnings || 0),
+      pendingEarnings: parseFloat(affiliate.pendingEarnings || 0),
+      paidEarnings: parseFloat(affiliate.paidEarnings || 0),
+      totalReferrals: affiliate.totalReferrals || 0,
+      activeReferrals: affiliate.activeReferrals || 0,
+      totalClicks: affiliate.totalClicks || 0,
+      totalSignups: affiliate.totalSignups || 0,
       conversionRate: affiliate.totalClicks > 0 
         ? ((affiliate.totalSignups / affiliate.totalClicks) * 100).toFixed(2)
         : 0,
