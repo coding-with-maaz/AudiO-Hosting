@@ -44,7 +44,8 @@ export default function SharedFolderPage() {
     setPasswordError('');
 
     try {
-      const url = `${API_URL}/api/f/${shareToken}`;
+      // Backend route is /f/:id (not /api/f/:id)
+      const url = `${API_URL}/f/${shareToken}`;
       const params: any = {};
       if (providedPassword) {
         params.password = providedPassword;
