@@ -12,7 +12,7 @@ export function useCreateApiKey() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: { name: string; rateLimit?: number; permissions?: any }) =>
+    mutationFn: (data: { name: string; rateLimit?: number; permissions?: any; allowedDomains?: string[] }) =>
       apiKeyAPI.create(data).then(res => res.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['api-keys'] });
@@ -24,7 +24,7 @@ export function useUpdateApiKey() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) =>
+    mutationFn: ({ id, data }: { id: string; data: { name?: string; rateLimit?: number; isActive?: boolean; permissions?: any; allowedDomains?: string[] } }) =>
       apiKeyAPI.update(id, data).then(res => res.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['api-keys'] });

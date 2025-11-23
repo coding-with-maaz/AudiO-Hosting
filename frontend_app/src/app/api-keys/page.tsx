@@ -20,6 +20,8 @@ import {
   Calendar,
   ToggleLeft,
   ToggleRight,
+  Globe,
+  X,
 } from 'lucide-react';
 
 export default function ApiKeysPage() {
@@ -38,7 +40,10 @@ export default function ApiKeysPage() {
       write: true,
       delete: false,
     },
+    allowedDomains: [] as string[],
   });
+  const [domainInput, setDomainInput] = useState('');
+  const [editingDomains, setEditingDomains] = useState<Record<string, string[]>>({});
 
   const { data: apiKeys, isLoading } = useApiKeys();
   const createApiKey = useCreateApiKey();
@@ -56,6 +61,7 @@ export default function ApiKeysPage() {
         name: formData.name,
         rateLimit: parseInt(formData.rateLimit),
         permissions: formData.permissions,
+        allowedDomains: formData.allowedDomains,
       });
 
       if (result.success && result.data?.apiKey) {
@@ -69,14 +75,16 @@ export default function ApiKeysPage() {
           name: '',
           rateLimit: '1000',
           permissions: { read: true, write: true, delete: false },
+          allowedDomains: [],
         });
+        setDomainInput('');
       }
     } catch (error: any) {
       alert(error?.response?.data?.message || 'Failed to create API key');
     }
   };
 
-  const handleUpdate = async (id: string, updates: any) => {
+  const handleUpdate = async (id: string, updates: { name?: string; rateLimit?: number; isActive?: boolean; permissions?: any; allowedDomains?: string[] }) => {
     try {
       await updateApiKey.mutateAsync({ id, data: updates });
       setEditingKey(null);
@@ -305,6 +313,131 @@ export default function ApiKeysPage() {
                           </div>
                         )}
 
+                        {/* Allowed Domains */}
+                        <div className="mt-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                              Allowed Domains
+                            </label>
+                            <button
+                              onClick={() => {
+                                const currentDomains = editingDomains[apiKey.id] || apiKey.allowedDomains || [];
+                                setEditingDomains({ ...editingDomains, [apiKey.id]: [...currentDomains] });
+                              }}
+                              className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400"
+                            >
+                              {editingDomains[apiKey.id] ? 'Cancel' : 'Edit'}
+                            </button>
+                          </div>
+                          {editingDomains[apiKey.id] ? (
+                            <div className="space-y-2">
+                              <div className="flex gap-2">
+                                <input
+                                  type="text"
+                                  value={domainInput}
+                                  onChange={(e) => setDomainInput(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && domainInput.trim()) {
+                                      e.preventDefault();
+                                      const domains = editingDomains[apiKey.id] || [];
+                                      if (!domains.includes(domainInput.trim())) {
+                                        setEditingDomains({
+                                          ...editingDomains,
+                                          [apiKey.id]: [...domains, domainInput.trim()],
+                                        });
+                                        setDomainInput('');
+                                      }
+                                    }
+                                  }}
+                                  placeholder="example.com or *.example.com"
+                                  className="flex-1 rounded-md border border-gray-300 px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                />
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    const domains = editingDomains[apiKey.id] || [];
+                                    if (domainInput.trim() && !domains.includes(domainInput.trim())) {
+                                      setEditingDomains({
+                                        ...editingDomains,
+                                        [apiKey.id]: [...domains, domainInput.trim()],
+                                      });
+                                      setDomainInput('');
+                                    }
+                                  }}
+                                >
+                                  <Plus className="h-4 w-4" />
+                                </Button>
+                              </div>
+                              <div className="flex flex-wrap gap-2">
+                                {(editingDomains[apiKey.id] || []).map((domain, index) => (
+                                  <span
+                                    key={index}
+                                    className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800 dark:bg-blue-900/20 dark:text-blue-400"
+                                  >
+                                    <Globe className="h-3 w-3" />
+                                    {domain}
+                                    <button
+                                      onClick={() => {
+                                        const domains = editingDomains[apiKey.id] || [];
+                                        setEditingDomains({
+                                          ...editingDomains,
+                                          [apiKey.id]: domains.filter((_, i) => i !== index),
+                                        });
+                                      }}
+                                      className="hover:text-blue-600"
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </button>
+                                  </span>
+                                ))}
+                              </div>
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  onClick={async () => {
+                                    await handleUpdate(apiKey.id, {
+                                      allowedDomains: editingDomains[apiKey.id] || [],
+                                    });
+                                    setEditingDomains({ ...editingDomains, [apiKey.id]: undefined });
+                                    setDomainInput('');
+                                  }}
+                                >
+                                  Save
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    setEditingDomains({ ...editingDomains, [apiKey.id]: undefined });
+                                    setDomainInput('');
+                                  }}
+                                >
+                                  Cancel
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex flex-wrap gap-2">
+                              {apiKey.allowedDomains && apiKey.allowedDomains.length > 0 ? (
+                                apiKey.allowedDomains.map((domain: string, index: number) => (
+                                  <span
+                                    key={index}
+                                    className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-1 text-xs text-blue-800 dark:bg-blue-900/20 dark:text-blue-400"
+                                  >
+                                    <Globe className="h-3 w-3" />
+                                    {domain}
+                                  </span>
+                                ))
+                              ) : (
+                                <span className="text-xs text-gray-500 dark:text-gray-400">
+                                  All domains allowed
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+
                         {/* Key Details */}
                         <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-4">
                           <div>
@@ -479,6 +612,74 @@ export default function ApiKeysPage() {
                     </label>
                   </div>
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Allowed Domains (Optional)
+                  </label>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Restrict API key usage to specific domains. Leave empty to allow all domains.
+                  </p>
+                  <div className="mt-2 flex gap-2">
+                    <input
+                      type="text"
+                      value={domainInput}
+                      onChange={(e) => setDomainInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && domainInput.trim()) {
+                          e.preventDefault();
+                          if (!formData.allowedDomains.includes(domainInput.trim())) {
+                            setFormData({
+                              ...formData,
+                              allowedDomains: [...formData.allowedDomains, domainInput.trim()],
+                            });
+                            setDomainInput('');
+                          }
+                        }
+                      }}
+                      placeholder="example.com or *.example.com"
+                      className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        if (domainInput.trim() && !formData.allowedDomains.includes(domainInput.trim())) {
+                          setFormData({
+                            ...formData,
+                            allowedDomains: [...formData.allowedDomains, domainInput.trim()],
+                          });
+                          setDomainInput('');
+                        }
+                      }}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  {formData.allowedDomains.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {formData.allowedDomains.map((domain, index) => (
+                        <span
+                          key={index}
+                          className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-3 py-1 text-sm text-blue-800 dark:bg-blue-900/20 dark:text-blue-400"
+                        >
+                          <Globe className="h-3 w-3" />
+                          {domain}
+                          <button
+                            onClick={() => {
+                              setFormData({
+                                ...formData,
+                                allowedDomains: formData.allowedDomains.filter((_, i) => i !== index),
+                              });
+                            }}
+                            className="ml-1 hover:text-blue-600"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
@@ -489,7 +690,9 @@ export default function ApiKeysPage() {
                         name: '',
                         rateLimit: '1000',
                         permissions: { read: true, write: true, delete: false },
+                        allowedDomains: [],
                       });
+                      setDomainInput('');
                     }}
                   >
                     Cancel

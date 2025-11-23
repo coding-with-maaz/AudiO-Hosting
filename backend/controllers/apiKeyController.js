@@ -13,7 +13,7 @@ const generateApiSecret = () => {
 
 exports.createApiKey = async (req, res, next) => {
   try {
-    const { name, rateLimit, permissions } = req.body;
+    const { name, rateLimit, permissions, allowedDomains } = req.body;
 
     if (!name) {
       return res.status(400).json({
@@ -26,13 +26,22 @@ exports.createApiKey = async (req, res, next) => {
     const key = generateApiKey();
     const secret = generateApiSecret();
 
+    // Validate and format allowed domains
+    let domains = [];
+    if (allowedDomains && Array.isArray(allowedDomains)) {
+      domains = allowedDomains
+        .map(domain => domain.trim())
+        .filter(domain => domain.length > 0);
+    }
+
     const apiKey = await db.ApiKey.create({
       userId: req.user.id,
       name,
       key,
       secret,
       rateLimit: rateLimit || 1000,
-      permissions: permissions || {}
+      permissions: permissions || {},
+      allowedDomains: domains
     });
 
     res.status(201).json({
@@ -46,6 +55,7 @@ exports.createApiKey = async (req, res, next) => {
           secret: apiKey.secret, // Only shown once
           rateLimit: apiKey.rateLimit,
           permissions: apiKey.permissions,
+          allowedDomains: apiKey.allowedDomains || [],
           createdAt: apiKey.createdAt
         }
       }
@@ -75,7 +85,7 @@ exports.getApiKeys = async (req, res, next) => {
 exports.updateApiKey = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { name, rateLimit, isActive, permissions } = req.body;
+    const { name, rateLimit, isActive, permissions, allowedDomains } = req.body;
 
     const apiKey = await db.ApiKey.findOne({
       where: { id, userId: req.user.id }
@@ -93,6 +103,16 @@ exports.updateApiKey = async (req, res, next) => {
     if (rateLimit !== undefined) updates.rateLimit = parseInt(rateLimit);
     if (isActive !== undefined) updates.isActive = isActive;
     if (permissions !== undefined) updates.permissions = permissions;
+    if (allowedDomains !== undefined) {
+      // Validate and format allowed domains
+      if (Array.isArray(allowedDomains)) {
+        updates.allowedDomains = allowedDomains
+          .map(domain => domain.trim())
+          .filter(domain => domain.length > 0);
+      } else {
+        updates.allowedDomains = [];
+      }
+    }
 
     await apiKey.update(updates);
 

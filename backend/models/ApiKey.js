@@ -47,6 +47,12 @@ module.exports = (sequelize) => {
       allowNull: true,
       defaultValue: {},
       comment: 'API key permissions'
+    },
+    allowedDomains: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      defaultValue: [],
+      comment: 'Array of allowed domains for API key usage. Empty array means all domains allowed.'
     }
   }, {
     tableName: 'api_keys',

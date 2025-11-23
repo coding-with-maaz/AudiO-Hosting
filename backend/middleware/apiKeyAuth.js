@@ -1,5 +1,16 @@
 const db = require('../models');
 
+// Extract domain from origin/referer
+const extractDomain = (url) => {
+  if (!url) return null;
+  try {
+    const urlObj = new URL(url);
+    return urlObj.hostname;
+  } catch (e) {
+    return null;
+  }
+};
+
 const apiKeyAuth = async (req, res, next) => {
   try {
     const apiKey = req.headers['x-api-key'] || req.query.api_key;
@@ -37,6 +48,35 @@ const apiKeyAuth = async (req, res, next) => {
         success: false,
         message: 'Invalid API secret'
       });
+    }
+
+    // Check allowed domains if configured
+    if (key.allowedDomains && Array.isArray(key.allowedDomains) && key.allowedDomains.length > 0) {
+      const origin = req.headers.origin || req.headers.referer;
+      const requestDomain = extractDomain(origin);
+      
+      if (!requestDomain) {
+        return res.status(403).json({
+          success: false,
+          message: 'Domain origin required for API key usage'
+        });
+      }
+
+      // Check if domain is allowed (exact match or wildcard subdomain)
+      const isAllowed = key.allowedDomains.some(allowedDomain => {
+        if (allowedDomain === '*') return true; // Allow all domains
+        if (allowedDomain === requestDomain) return true; // Exact match
+        if (allowedDomain.startsWith('*.') && requestDomain.endsWith(allowedDomain.slice(1))) return true; // Wildcard subdomain
+        return false;
+      });
+
+      if (!isAllowed) {
+        return res.status(403).json({
+          success: false,
+          message: `Domain '${requestDomain}' is not allowed for this API key`,
+          allowedDomains: key.allowedDomains
+        });
+      }
     }
 
     // Check if user is active

@@ -1,9 +1,19 @@
 const jwt = require('jsonwebtoken');
 const config = require('../config/config');
 const db = require('../models');
+const apiKeyAuth = require('./apiKeyAuth');
 
 const authenticate = async (req, res, next) => {
   try {
+    // Check if API key is provided
+    const apiKey = req.headers['x-api-key'] || req.query.api_key;
+    
+    if (apiKey) {
+      // Use API key authentication
+      return apiKeyAuth(req, res, next);
+    }
+
+    // Otherwise, use JWT authentication
     const token = req.headers.authorization?.split(' ')[1] || req.cookies?.token;
 
     if (!token) {
