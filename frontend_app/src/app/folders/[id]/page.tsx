@@ -10,7 +10,7 @@ import {
   useEnableFolderSharing,
   useDisableFolderSharing
 } from '@/hooks/useFolders';
-import { useMyAudios } from '@/hooks/useAudios';
+import { useMyAudios } from '@/hooks/useAudio';
 import { formatFileSize, formatDate, formatDuration } from '@/utils/format';
 import { Button } from '@/components/ui/Button';
 import {
