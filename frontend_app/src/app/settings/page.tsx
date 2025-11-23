@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useProfile, useUpdateProfile, useChangePassword } from '@/hooks/useAuth';
+import { useVerifyEmail, useResendVerification } from '@/hooks/useEmailVerification';
 import { useAuthStore } from '@/store/authStore';
 import { formatFileSize } from '@/utils/format';
 import { Button } from '@/components/ui/Button';
@@ -20,6 +21,8 @@ import {
   Shield,
   HardDrive,
   Wifi,
+  Send,
+  KeyRound,
 } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -34,6 +37,12 @@ export default function SettingsPage() {
   const { user, logout } = useAuthStore();
   const updateProfile = useUpdateProfile();
   const changePassword = useChangePassword();
+  const verifyEmail = useVerifyEmail();
+  const resendVerification = useResendVerification();
+
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [otpCode, setOtpCode] = useState(['', '', '', '', '', '']);
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   const currentUser = profile || user;
 
@@ -122,6 +131,72 @@ export default function SettingsPage() {
   const getBandwidthPercentage = () => {
     if (!currentUser?.bandwidthLimit || currentUser.bandwidthLimit === 0) return 0;
     return ((currentUser.bandwidthUsed || 0) / currentUser.bandwidthLimit) * 100;
+  };
+
+  const handleResendVerification = async () => {
+    try {
+      await resendVerification.mutateAsync();
+      setSuccessMessage('Verification code sent to your email!');
+      setResendCooldown(60); // 60 second cooldown
+      const interval = setInterval(() => {
+        setResendCooldown((prev) => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (error: any) {
+      setErrorMessage(error?.response?.data?.message || 'Failed to send verification code');
+      setTimeout(() => setErrorMessage(''), 5000);
+    }
+  };
+
+  const handleOtpChange = (index: number, value: string) => {
+    if (value.length > 1) return; // Only allow single digit
+    if (!/^\d*$/.test(value)) return; // Only allow numbers
+
+    const newOtp = [...otpCode];
+    newOtp[index] = value;
+    setOtpCode(newOtp);
+
+    // Auto-focus next input
+    if (value && index < 5) {
+      const nextInput = document.getElementById(`otp-${index + 1}`);
+      nextInput?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace' && !otpCode[index] && index > 0) {
+      const prevInput = document.getElementById(`otp-${index - 1}`);
+      prevInput?.focus();
+    }
+  };
+
+  const handleVerifyEmail = async () => {
+    const otp = otpCode.join('');
+    if (otp.length !== 6) {
+      setErrorMessage('Please enter the complete 6-digit code');
+      return;
+    }
+
+    setSuccessMessage('');
+    setErrorMessage('');
+
+    try {
+      await verifyEmail.mutateAsync(otp);
+      setSuccessMessage('Email verified successfully!');
+      setShowVerificationModal(false);
+      setOtpCode(['', '', '', '', '', '']);
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (error: any) {
+      setErrorMessage(error?.response?.data?.message || 'Invalid verification code');
+      setOtpCode(['', '', '', '', '', '']);
+      setTimeout(() => setErrorMessage(''), 5000);
+    }
   };
 
   if (isLoading) {
@@ -343,11 +418,41 @@ export default function SettingsPage() {
                     className="flex-1 rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                   />
                 </div>
-                {!currentUser?.isEmailVerified && (
-                  <p className="mt-1 text-xs text-yellow-600 dark:text-yellow-400">
-                    ⚠️ Email not verified. Please check your inbox.
-                  </p>
-                )}
+                <div className="mt-2 flex items-center justify-between">
+                  {currentUser?.isEmailVerified ? (
+                    <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
+                      <CheckCircle2 className="h-4 w-4" />
+                      <span>Email verified</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 text-sm text-yellow-600 dark:text-yellow-400">
+                      <AlertCircle className="h-4 w-4" />
+                      <span>Email not verified</span>
+                    </div>
+                  )}
+                  {!currentUser?.isEmailVerified && (
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowVerificationModal(true)}
+                      >
+                        <KeyRound className="mr-1 h-4 w-4" />
+                        Verify Email
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleResendVerification}
+                        disabled={resendVerification.isPending || resendCooldown > 0}
+                        isLoading={resendVerification.isPending}
+                      >
+                        <Send className="mr-1 h-4 w-4" />
+                        {resendCooldown > 0 ? `Resend (${resendCooldown}s)` : 'Resend Code'}
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* First Name */}
@@ -516,6 +621,85 @@ export default function SettingsPage() {
             </Button>
           </div>
         </div>
+
+        {/* Email Verification Modal */}
+        {showVerificationModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+            <div className="w-full max-w-md rounded-lg border border-gray-200 bg-white p-6 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+              <div className="mb-4 flex items-center gap-3">
+                <div className="rounded-full bg-blue-100 p-2 dark:bg-blue-900/20">
+                  <KeyRound className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Verify Your Email
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Enter the 6-digit code sent to {currentUser?.email}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                  Verification Code
+                </label>
+                <div className="flex gap-2 justify-center">
+                  {otpCode.map((digit, index) => (
+                    <input
+                      key={index}
+                      id={`otp-${index}`}
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={1}
+                      value={digit}
+                      onChange={(e) => handleOtpChange(index, e.target.value)}
+                      onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                      className="h-12 w-12 rounded-lg border-2 border-gray-300 text-center text-xl font-semibold focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    />
+                  ))}
+                </div>
+                {errorMessage && (
+                  <p className="mt-2 text-sm text-red-600 dark:text-red-400">{errorMessage}</p>
+                )}
+              </div>
+
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => {
+                    setShowVerificationModal(false);
+                    setOtpCode(['', '', '', '', '', '']);
+                    setErrorMessage('');
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  className="flex-1"
+                  onClick={handleVerifyEmail}
+                  disabled={verifyEmail.isPending || otpCode.join('').length !== 6}
+                  isLoading={verifyEmail.isPending}
+                >
+                  Verify
+                </Button>
+              </div>
+
+              <div className="mt-4 text-center">
+                <button
+                  onClick={handleResendVerification}
+                  disabled={resendVerification.isPending || resendCooldown > 0}
+                  className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 disabled:text-gray-400"
+                >
+                  {resendCooldown > 0
+                    ? `Resend code in ${resendCooldown}s`
+                    : 'Resend verification code'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

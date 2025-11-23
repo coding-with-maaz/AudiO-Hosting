@@ -8,30 +8,30 @@ exports.sendVerificationEmail = async (userId) => {
     const user = await db.User.findByPk(userId);
     if (!user) return { success: false, message: 'User not found' };
 
-    // Generate verification token
-    const token = crypto.randomBytes(32).toString('hex');
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+    // Generate 6-digit OTP PIN
+    const otpPin = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-    // Store token in user metadata or create separate table
+    // Store OTP PIN in user metadata
     await user.update({
       metadata: {
         ...(user.metadata || {}),
-        emailVerificationToken: token,
+        emailVerificationOTP: otpPin,
         emailVerificationExpires: expiresAt
       }
     });
 
-    const template = emailTemplates.verification(user, token);
+    const template = emailTemplates.verification(user, otpPin);
 
     await transporter.sendMail({
-      from: process.env.SMTP_FROM || 'noreply@audiohosting.com',
+      from: process.env.MAIL_FROM_ADDRESS || process.env.SMTP_FROM || 'noreply@audiohosting.com',
       to: user.email,
       subject: template.subject,
       html: template.html,
       text: template.text
     });
 
-    return { success: true };
+    return { success: true, otpPin }; // Return OTP for testing (remove in production)
   } catch (error) {
     console.error('Email send error:', error);
     return { success: false, error: error.message };
@@ -40,34 +40,60 @@ exports.sendVerificationEmail = async (userId) => {
 
 exports.verifyEmail = async (req, res, next) => {
   try {
-    const { token } = req.query;
+    const { otp } = req.body;
+    const userId = req.user?.id || req.body.userId;
 
-    if (!token) {
+    if (!otp) {
       return res.status(400).json({
         success: false,
-        message: 'Verification token required'
+        message: 'OTP PIN code is required'
       });
     }
 
-    const user = await db.User.findOne({
-      where: {
-        'metadata.emailVerificationToken': token,
-        isEmailVerified: false
-      }
-    });
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID is required'
+      });
+    }
 
+    const user = await db.User.findByPk(userId);
+    
     if (!user) {
-      return res.status(400).json({
+      return res.status(404).json({
         success: false,
-        message: 'Invalid or expired token'
+        message: 'User not found'
       });
     }
 
+    if (user.isEmailVerified) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email already verified'
+      });
+    }
+
+    const storedOTP = user.metadata?.emailVerificationOTP;
     const expiresAt = user.metadata?.emailVerificationExpires;
+
+    if (!storedOTP) {
+      return res.status(400).json({
+        success: false,
+        message: 'No verification code found. Please request a new one.'
+      });
+    }
+
     if (expiresAt && new Date(expiresAt) < new Date()) {
       return res.status(400).json({
         success: false,
-        message: 'Verification token expired'
+        message: 'Verification code expired. Please request a new one.'
+      });
+    }
+
+    if (storedOTP !== otp) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid verification code'
       });
     }
 
@@ -75,7 +101,7 @@ exports.verifyEmail = async (req, res, next) => {
       isEmailVerified: true,
       metadata: {
         ...user.metadata,
-        emailVerificationToken: null,
+        emailVerificationOTP: null,
         emailVerificationExpires: null
       }
     });

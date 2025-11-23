@@ -74,6 +74,11 @@ export const authAPI = {
   changePassword: (data: any) => api.put('/auth/change-password', data),
 };
 
+export const emailAPI = {
+  verifyEmail: (otp: string) => api.post('/email/verify-email', { otp }),
+  resendVerification: () => api.post('/email/resend-verification'),
+};
+
 export const audioAPI = {
   upload: (formData: FormData) => api.post('/audio/upload', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },

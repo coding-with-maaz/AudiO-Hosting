@@ -3,23 +3,22 @@ const config = require('../config/config');
 const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
 
 const templates = {
-  verification: (user, token) => ({
-    subject: 'Verify Your Email Address',
+  verification: (user, otpPin) => ({
+    subject: 'Verify Your Email Address - OTP Code',
     html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2>Welcome to Audio Hosting Platform!</h2>
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #333;">Welcome to Audio Hosting Platform!</h2>
         <p>Hi ${user.username},</p>
-        <p>Please verify your email address by clicking the link below:</p>
-        <a href="${baseUrl}/api/auth/verify-email?token=${token}" 
-           style="display: inline-block; padding: 12px 24px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px;">
-          Verify Email
-        </a>
-        <p>Or copy this link: ${baseUrl}/api/auth/verify-email?token=${token}</p>
-        <p>This link will expire in 24 hours.</p>
-        <p>If you didn't create an account, please ignore this email.</p>
+        <p>Please verify your email address using the OTP code below:</p>
+        <div style="background-color: #f5f5f5; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px;">
+          <h1 style="font-size: 36px; letter-spacing: 8px; color: #007bff; margin: 0;">${otpPin}</h1>
+        </div>
+        <p style="color: #666; font-size: 14px;">Enter this code in the verification form to complete your email verification.</p>
+        <p style="color: #d32f2f; font-size: 14px; font-weight: bold;">⚠️ This code will expire in 10 minutes.</p>
+        <p style="color: #666; font-size: 12px; margin-top: 30px;">If you didn't create an account, please ignore this email.</p>
       </div>
     `,
-    text: `Welcome to Audio Hosting Platform!\n\nPlease verify your email: ${baseUrl}/api/auth/verify-email?token=${token}`
+    text: `Welcome to Audio Hosting Platform!\n\nHi ${user.username},\n\nPlease verify your email address using this OTP code: ${otpPin}\n\nThis code will expire in 10 minutes.\n\nIf you didn't create an account, please ignore this email.`
   }),
 
   passwordReset: (user, token) => ({
