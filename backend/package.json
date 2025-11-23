@@ -12,7 +12,8 @@
     "create-admin": "node scripts/create-admin.js",
     "kill-port": "node scripts/kill-port.js",
     "fix-expiration-date": "node scripts/add-expiration-date.js",
-    "fix-playlist-audios": "node scripts/fix-playlist-audios.js"
+    "fix-playlist-audios": "node scripts/fix-playlist-audios.js",
+    "add-user-metadata": "node scripts/add-user-metadata.js"
   },
   "keywords": [
     "audio",

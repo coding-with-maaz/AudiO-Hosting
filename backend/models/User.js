@@ -96,6 +96,12 @@ module.exports = (sequelize) => {
     deletedAt: {
       type: DataTypes.DATE,
       allowNull: true
+    },
+    metadata: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      defaultValue: {},
+      comment: 'JSON object for storing additional user data like OTP codes'
     }
   }, {
     tableName: 'users',

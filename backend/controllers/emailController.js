@@ -12,14 +12,33 @@ exports.sendVerificationEmail = async (userId) => {
     const otpPin = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-    // Store OTP PIN in user metadata
-    await user.update({
-      metadata: {
-        ...(user.metadata || {}),
-        emailVerificationOTP: otpPin,
-        emailVerificationExpires: expiresAt
+    // Get current metadata (handle both JSON string and object)
+    let currentMetadata = {};
+    if (user.metadata) {
+      if (typeof user.metadata === 'string') {
+        try {
+          currentMetadata = JSON.parse(user.metadata);
+        } catch (e) {
+          currentMetadata = {};
+        }
+      } else {
+        currentMetadata = user.metadata;
       }
+    }
+
+    // Store OTP PIN in user metadata
+    const updatedMetadata = {
+      ...currentMetadata,
+      emailVerificationOTP: otpPin,
+      emailVerificationExpires: expiresAt.toISOString()
+    };
+
+    await user.update({
+      metadata: updatedMetadata
     });
+
+    // Reload user to ensure metadata is saved
+    await user.reload();
 
     const template = emailTemplates.verification(user, otpPin);
 
@@ -72,10 +91,32 @@ exports.verifyEmail = async (req, res, next) => {
       });
     }
 
-    const storedOTP = user.metadata?.emailVerificationOTP;
-    const expiresAt = user.metadata?.emailVerificationExpires;
+    // Parse metadata (handle both JSON string and object)
+    let metadata = {};
+    if (user.metadata) {
+      if (typeof user.metadata === 'string') {
+        try {
+          metadata = JSON.parse(user.metadata);
+        } catch (e) {
+          console.error('Error parsing metadata:', e);
+          metadata = {};
+        }
+      } else {
+        metadata = user.metadata;
+      }
+    }
+
+    console.log('User metadata:', JSON.stringify(metadata, null, 2));
+    console.log('Looking for OTP:', otp);
+
+    const storedOTP = metadata?.emailVerificationOTP;
+    const expiresAt = metadata?.emailVerificationExpires;
+
+    console.log('Stored OTP:', storedOTP);
+    console.log('Expires at:', expiresAt);
 
     if (!storedOTP) {
+      console.log('No OTP found in metadata');
       return res.status(400).json({
         success: false,
         message: 'No verification code found. Please request a new one.'
@@ -96,13 +137,14 @@ exports.verifyEmail = async (req, res, next) => {
       });
     }
 
+    // Remove OTP from metadata
+    const updatedMetadata = { ...metadata };
+    delete updatedMetadata.emailVerificationOTP;
+    delete updatedMetadata.emailVerificationExpires;
+
     await user.update({
       isEmailVerified: true,
-      metadata: {
-        ...user.metadata,
-        emailVerificationOTP: null,
-        emailVerificationExpires: null
-      }
+      metadata: updatedMetadata
     });
 
     res.json({
