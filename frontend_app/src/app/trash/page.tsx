@@ -6,6 +6,7 @@ import { useTrash, useRestoreFromTrash, useEmptyTrash } from '@/hooks/useTrash';
 import { formatFileSize, formatDate } from '@/utils/format';
 import { Button } from '@/components/ui/Button';
 import { Trash2, RotateCcw, Music, Folder, AlertTriangle, X, Check } from 'lucide-react';
+import { useConfirm } from '@/contexts/ConfirmContext';
 
 export default function TrashPage() {
   const [selectedType, setSelectedType] = useState<string>('all');
@@ -15,6 +16,7 @@ export default function TrashPage() {
   const { data, isLoading, refetch } = useTrash(selectedType === 'all' ? undefined : selectedType);
   const restoreFromTrash = useRestoreFromTrash();
   const emptyTrash = useEmptyTrash();
+  const confirm = useConfirm();
 
   // Backend returns { audios: [] } or { folders: [] } based on type
   const audios = data?.audios || [];
@@ -22,7 +24,16 @@ export default function TrashPage() {
   const trashItems = [...audios.map((a: any) => ({ ...a, type: 'audio' })), ...folders.map((f: any) => ({ ...f, type: 'folder' }))];
 
   const handleRestore = async (id: string) => {
-    if (confirm('Restore this item from trash?')) {
+    const confirmed = await confirm({
+      title: 'Restore Item',
+      message: 'Are you sure you want to restore this item from trash?',
+      confirmText: 'Restore',
+      cancelText: 'Cancel',
+      type: 'info',
+      icon: <RotateCcw className="h-6 w-6" />,
+    });
+
+    if (confirmed) {
       try {
         await restoreFromTrash.mutateAsync(id);
         setSelectedItems((prev) => prev.filter((itemId) => itemId !== id));
@@ -34,7 +45,17 @@ export default function TrashPage() {
 
   const handleBulkRestore = async () => {
     if (selectedItems.length === 0) return;
-    if (confirm(`Restore ${selectedItems.length} item(s) from trash?`)) {
+    
+    const confirmed = await confirm({
+      title: 'Restore Multiple Items',
+      message: `Are you sure you want to restore ${selectedItems.length} item(s) from trash?`,
+      confirmText: 'Restore All',
+      cancelText: 'Cancel',
+      type: 'info',
+      icon: <RotateCcw className="h-6 w-6" />,
+    });
+
+    if (confirmed) {
       try {
         for (const id of selectedItems) {
           await restoreFromTrash.mutateAsync(id);
@@ -50,7 +71,16 @@ export default function TrashPage() {
     const typeParam = selectedType === 'all' ? undefined : selectedType;
     const typeLabel = selectedType === 'all' ? 'all items' : `${selectedType}s`;
     
-    if (confirm(`Permanently delete ${typeLabel}? This action cannot be undone.`)) {
+    const confirmed = await confirm({
+      title: 'Empty Trash',
+      message: `Are you sure you want to permanently delete ${typeLabel}? This action cannot be undone.`,
+      confirmText: 'Delete Permanently',
+      cancelText: 'Cancel',
+      type: 'danger',
+      icon: <AlertTriangle className="h-6 w-6" />,
+    });
+
+    if (confirmed) {
       try {
         await emptyTrash.mutateAsync(typeParam);
         setShowEmptyModal(false);

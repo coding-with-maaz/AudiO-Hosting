@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { ListMusic, Plus, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { formatDate } from '@/utils/format';
+import { useConfirm } from '@/contexts/ConfirmContext';
 
 export default function PlaylistsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -17,6 +18,7 @@ export default function PlaylistsPage() {
   const { data, isLoading } = usePlaylists();
   const createPlaylist = useCreatePlaylist();
   const deletePlaylist = useDeletePlaylist();
+  const confirm = useConfirm();
 
   const handleCreate = async () => {
     if (!playlistName.trim()) return;
@@ -34,7 +36,16 @@ export default function PlaylistsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this playlist?')) {
+    const confirmed = await confirm({
+      title: 'Delete Playlist',
+      message: 'Are you sure you want to delete this playlist? This action cannot be undone.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      type: 'danger',
+      icon: <Trash2 className="h-6 w-6" />,
+    });
+
+    if (confirmed) {
       await deletePlaylist.mutateAsync(id);
     }
   };

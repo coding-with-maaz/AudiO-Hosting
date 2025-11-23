@@ -34,6 +34,7 @@ import {
   Clock,
   HardDrive,
 } from 'lucide-react';
+import { useConfirm } from '@/contexts/ConfirmContext';
 import Link from 'next/link';
 import { AudioPlayer } from '@/components/audio/AudioPlayer';
 
@@ -92,8 +93,19 @@ export default function PlaylistDetailPage() {
     }
   };
 
+  const confirm = useConfirm();
+
   const handleDelete = async () => {
-    if (confirm('Are you sure you want to delete this playlist? All tracks will be removed.')) {
+    const confirmed = await confirm({
+      title: 'Delete Playlist',
+      message: 'Are you sure you want to delete this playlist? All tracks will be removed. This action cannot be undone.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      type: 'danger',
+      icon: <Trash2 className="h-6 w-6" />,
+    });
+
+    if (confirmed) {
       try {
         await deletePlaylist.mutateAsync(playlistId);
         router.push('/playlists');
@@ -135,7 +147,16 @@ export default function PlaylistDetailPage() {
   };
 
   const handleRemoveAudio = async (audioId: string) => {
-    if (confirm('Remove this track from playlist?')) {
+    const confirmed = await confirm({
+      title: 'Remove Track',
+      message: 'Are you sure you want to remove this track from the playlist?',
+      confirmText: 'Remove',
+      cancelText: 'Cancel',
+      type: 'warning',
+      icon: <X className="h-6 w-6" />,
+    });
+
+    if (confirmed) {
       try {
         await removeFromPlaylist.mutateAsync({
           id: playlistId,

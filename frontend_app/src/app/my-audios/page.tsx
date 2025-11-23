@@ -7,22 +7,43 @@ import { formatFileSize, formatDate } from '@/utils/format';
 import { Button } from '@/components/ui/Button';
 import { Music, Trash2, Edit, Download, Share2, MoreVertical } from 'lucide-react';
 import Link from 'next/link';
+import { useConfirm } from '@/contexts/ConfirmContext';
 
 export default function MyAudiosPage() {
   const [page, setPage] = useState(1);
   const [selectedAudios, setSelectedAudios] = useState<string[]>([]);
   const { data, isLoading } = useMyAudios({ page, limit: 20 });
   const deleteAudio = useDeleteAudio();
+  const confirm = useConfirm();
 
   const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this audio?')) {
+    const confirmed = await confirm({
+      title: 'Delete Audio',
+      message: 'Are you sure you want to delete this audio? This action cannot be undone.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      type: 'danger',
+      icon: <Trash2 className="h-6 w-6" />,
+    });
+
+    if (confirmed) {
       await deleteAudio.mutateAsync({ id });
     }
   };
 
   const handleBulkDelete = async () => {
     if (selectedAudios.length === 0) return;
-    if (confirm(`Delete ${selectedAudios.length} audio(s)?`)) {
+    
+    const confirmed = await confirm({
+      title: 'Delete Multiple Audios',
+      message: `Are you sure you want to delete ${selectedAudios.length} audio file(s)? This action cannot be undone.`,
+      confirmText: 'Delete All',
+      cancelText: 'Cancel',
+      type: 'danger',
+      icon: <Trash2 className="h-6 w-6" />,
+    });
+
+    if (confirmed) {
       for (const id of selectedAudios) {
         await deleteAudio.mutateAsync({ id });
       }

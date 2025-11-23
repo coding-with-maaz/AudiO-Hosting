@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Folder, Plus, Trash2, FolderOpen } from 'lucide-react';
 import Link from 'next/link';
 import { formatDate } from '@/utils/format';
+import { useConfirm } from '@/contexts/ConfirmContext';
 
 export default function FoldersPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -16,6 +17,7 @@ export default function FoldersPage() {
   const { data, isLoading } = useFolders();
   const createFolder = useCreateFolder();
   const deleteFolder = useDeleteFolder();
+  const confirm = useConfirm();
 
   const handleCreate = async () => {
     if (!folderName.trim()) return;
@@ -31,7 +33,16 @@ export default function FoldersPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this folder?')) {
+    const confirmed = await confirm({
+      title: 'Delete Folder',
+      message: 'Are you sure you want to delete this folder? All contents will be moved to trash.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      type: 'danger',
+      icon: <Trash2 className="h-6 w-6" />,
+    });
+
+    if (confirmed) {
       await deleteFolder.mutateAsync(id);
     }
   };

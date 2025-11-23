@@ -49,6 +49,7 @@ export default function ApiKeysPage() {
   const createApiKey = useCreateApiKey();
   const updateApiKey = useUpdateApiKey();
   const deleteApiKey = useDeleteApiKey();
+  const confirm = useConfirm();
 
   const handleCreate = async () => {
     if (!formData.name.trim()) {
@@ -94,7 +95,16 @@ export default function ApiKeysPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this API key? This action cannot be undone.')) {
+    const confirmed = await confirm({
+      title: 'Delete API Key',
+      message: 'Are you sure you want to delete this API key? This action cannot be undone.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      type: 'danger',
+      icon: <Trash2 className="h-6 w-6" />,
+    });
+
+    if (confirmed) {
       try {
         await deleteApiKey.mutateAsync(id);
       } catch (error: any) {

@@ -32,6 +32,7 @@ import {
   MoreVertical,
   Play,
 } from 'lucide-react';
+import { useConfirm } from '@/contexts/ConfirmContext';
 import Link from 'next/link';
 
 export default function FolderDetailPage() {
@@ -52,6 +53,7 @@ export default function FolderDetailPage() {
   const deleteFolder = useDeleteFolder();
   const enableSharing = useEnableFolderSharing();
   const disableSharing = useDisableFolderSharing();
+  const confirm = useConfirm();
 
   const audios = audiosData?.audios || [];
 
@@ -82,7 +84,16 @@ export default function FolderDetailPage() {
   };
 
   const handleDelete = async () => {
-    if (confirm('Are you sure you want to delete this folder? All audios will be moved to root.')) {
+    const confirmed = await confirm({
+      title: 'Delete Folder',
+      message: 'Are you sure you want to delete this folder? All audios will be moved to root. This action cannot be undone.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      type: 'danger',
+      icon: <Trash2 className="h-6 w-6" />,
+    });
+
+    if (confirmed) {
       try {
         await deleteFolder.mutateAsync(folderId);
         router.push('/folders');
@@ -111,7 +122,16 @@ export default function FolderDetailPage() {
   };
 
   const handleDisableSharing = async () => {
-    if (confirm('Are you sure you want to disable sharing?')) {
+    const confirmed = await confirm({
+      title: 'Disable Sharing',
+      message: 'Are you sure you want to disable sharing? The folder will no longer be accessible via the share link.',
+      confirmText: 'Disable',
+      cancelText: 'Cancel',
+      type: 'warning',
+      icon: <Lock className="h-6 w-6" />,
+    });
+
+    if (confirmed) {
       try {
         await disableSharing.mutateAsync(folderId);
         refetchFolder();
