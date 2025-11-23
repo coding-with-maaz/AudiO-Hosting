@@ -1,6 +1,6 @@
 'use client';
 
-import { useParams, useSearchParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { Music } from 'lucide-react';
 import axios from 'axios';
@@ -10,18 +10,39 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 export default function EmbedAudioPage() {
   const params = useParams();
-  const searchParams = useSearchParams();
   const audioId = params.id as string;
   const [audio, setAudio] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
   // Get customization options from URL params
-  const hideTitle = searchParams.get('hideTitle') === 'true';
-  const hideArtist = searchParams.get('hideArtist') === 'true';
-  const hideCover = searchParams.get('hideCover') === 'true';
-  const autoPlay = searchParams.get('autoplay') === 'true';
-  const isCompact = searchParams.get('compact') === 'true';
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      // Store params in state or use directly
+      window.shareOptions = {
+        hideTitle: urlParams.get('hideTitle') === 'true',
+        hideArtist: urlParams.get('hideArtist') === 'true',
+        hideCover: urlParams.get('hideCover') === 'true',
+        autoPlay: urlParams.get('autoplay') === 'true',
+        isCompact: urlParams.get('compact') === 'true',
+      };
+    }
+  }, []);
+
+  const getShareOptions = () => {
+    if (typeof window === 'undefined') return {};
+    const urlParams = new URLSearchParams(window.location.search);
+    return {
+      hideTitle: urlParams.get('hideTitle') === 'true',
+      hideArtist: urlParams.get('hideArtist') === 'true',
+      hideCover: urlParams.get('hideCover') === 'true',
+      autoPlay: urlParams.get('autoplay') === 'true',
+      isCompact: urlParams.get('compact') === 'true',
+    };
+  };
+
+  const shareOptions = getShareOptions();
 
   useEffect(() => {
     fetchAudio();
@@ -103,14 +124,14 @@ export default function EmbedAudioPage() {
         {/* Custom Audio Player */}
         <AudioPlayer
           src={getDirectLink()}
-          title={hideTitle ? undefined : audio.title}
-          artist={hideArtist ? undefined : audio.user?.username}
-          coverImage={hideCover ? undefined : audio.thumbnail}
-          autoPlay={autoPlay}
+          title={shareOptions.hideTitle ? undefined : audio.title}
+          artist={shareOptions.hideArtist ? undefined : audio.user?.username}
+          coverImage={shareOptions.hideCover ? undefined : audio.thumbnail}
+          autoPlay={shareOptions.autoPlay}
           showDownload={true}
           showShare={true}
           showFullscreen={true}
-          className={`w-full ${isCompact ? 'max-w-2xl' : ''}`}
+          className={`w-full ${shareOptions.isCompact ? 'max-w-2xl' : ''}`}
         />
 
         {/* Footer */}
