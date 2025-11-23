@@ -11,7 +11,20 @@ export function useMyAffiliate() {
 export function useAffiliateStats() {
   return useQuery({
     queryKey: ['affiliate-stats'],
-    queryFn: () => affiliateAPI.getStats().then(res => res.data.data),
+    queryFn: () => affiliateAPI.getStats().then(res => res.data.data).catch(() => ({
+      stats: {
+        totalEarnings: 0,
+        pendingEarnings: 0,
+        paidEarnings: 0,
+        totalReferrals: 0,
+        activeReferrals: 0,
+        totalClicks: 0,
+        totalSignups: 0,
+        conversionRate: 0,
+        recentTransactions: []
+      },
+      affiliate: null
+    })),
   });
 }
 
