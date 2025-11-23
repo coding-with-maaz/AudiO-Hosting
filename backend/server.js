@@ -158,7 +158,29 @@ db.sequelize.authenticate()
     // Don't use sync with alter - use migrations instead
     // Sync only creates tables if they don't exist (force: false)
     // Use migrations for schema changes: npm run db:migrate
-    return db.sequelize.sync({ alter: false });
+    return db.sequelize.sync({ alter: false }).then(async () => {
+      // Add allowedDomains column if it doesn't exist
+      try {
+        const queryInterface = db.sequelize.getQueryInterface();
+        const tableDescription = await queryInterface.describeTable('api_keys');
+        
+        if (!tableDescription.allowedDomains) {
+          console.log('Adding allowedDomains column to api_keys table...');
+          await queryInterface.addColumn('api_keys', 'allowedDomains', {
+            type: db.sequelize.Sequelize.JSON,
+            allowNull: true,
+            defaultValue: [],
+            comment: 'Array of allowed domains for API key usage'
+          });
+          console.log('allowedDomains column added successfully.');
+        }
+      } catch (error) {
+        // Column might already exist or table might not exist yet
+        if (error.message && !error.message.includes('Duplicate column name')) {
+          console.error('Error checking/adding allowedDomains column:', error.message);
+        }
+      }
+    });
   })
   .then(() => {
     console.log('Database connection ready.');
