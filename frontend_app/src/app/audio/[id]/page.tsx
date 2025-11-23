@@ -44,6 +44,10 @@ export default function AudioDetailPage() {
   };
 
   const getDirectLink = () => {
+    // Use public download route if shareToken exists, otherwise use authenticated route
+    if (audio?.shareToken) {
+      return `${API_URL}/d/${audio.shareToken}`;
+    }
     return `${API_URL}/api/audio/${audioId}/download`;
   };
 

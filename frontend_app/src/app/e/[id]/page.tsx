@@ -58,7 +58,8 @@ export default function EmbedAudioPage() {
   };
 
   const getDirectLink = () => {
-    return `${API_URL}/api/audio/${audio?.id || audioId}/download`;
+    // Use public download route for embed (no auth required)
+    return `${API_URL}/d/${audio?.shareToken || audio?.id || audioId}`;
   };
 
   if (isLoading) {

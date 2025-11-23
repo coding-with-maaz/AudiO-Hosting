@@ -54,6 +54,7 @@ export function AudioPlayer({
   const [repeat, setRepeat] = useState<'off' | 'one' | 'all'>('off');
   const [shuffle, setShuffle] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [audioError, setAudioError] = useState(false);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -226,11 +227,50 @@ export function AudioPlayer({
 
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
 
+  const [audioError, setAudioError] = useState(false);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const handleError = (e: any) => {
+      console.error('Audio error:', e);
+      setAudioError(true);
+    };
+
+    const handleCanPlay = () => {
+      setAudioError(false);
+    };
+
+    audio.addEventListener('error', handleError);
+    audio.addEventListener('canplay', handleCanPlay);
+
+    return () => {
+      audio.removeEventListener('error', handleError);
+      audio.removeEventListener('canplay', handleCanPlay);
+    };
+  }, [src]);
+
   return (
     <div
       className={`bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-2xl overflow-hidden ${className}`}
     >
-      <audio ref={audioRef} src={src} preload="metadata" />
+      <audio 
+        ref={audioRef} 
+        src={src} 
+        preload="metadata"
+        crossOrigin="anonymous"
+        onError={(e) => {
+          console.error('Audio loading error:', e);
+          setAudioError(true);
+        }}
+      >
+        <source src={src} type="audio/mpeg" />
+        <source src={src} type="audio/mp3" />
+        <source src={src} type="audio/wav" />
+        <source src={src} type="audio/ogg" />
+        Your browser does not support the audio element.
+      </audio>
       
       {/* Cover Image */}
       {coverImage && (
@@ -248,7 +288,16 @@ export function AudioPlayer({
         </div>
       )}
 
-      {/* Player Controls */}
+        {/* Error Message */}
+      {audioError && (
+        <div className="p-4 bg-red-900/20 border-b border-red-500/50">
+          <p className="text-red-400 text-sm text-center">
+            Failed to load audio. Please check the file URL or try refreshing.
+          </p>
+        </div>
+      )}
+
+        {/* Player Controls */}
       <div className="p-6">
         {/* Title (if no cover) */}
         {!coverImage && (
