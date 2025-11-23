@@ -18,7 +18,7 @@ export default function PlaylistsPage() {
   const { data, isLoading } = usePlaylists();
   const createPlaylist = useCreatePlaylist();
   const deletePlaylist = useDeletePlaylist();
-  const confirm = useConfirm();
+  const { confirm } = useConfirm();
 
   const handleCreate = async () => {
     if (!playlistName.trim()) return;

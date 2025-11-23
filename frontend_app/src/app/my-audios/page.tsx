@@ -14,7 +14,7 @@ export default function MyAudiosPage() {
   const [selectedAudios, setSelectedAudios] = useState<string[]>([]);
   const { data, isLoading } = useMyAudios({ page, limit: 20 });
   const deleteAudio = useDeleteAudio();
-  const confirm = useConfirm();
+  const { confirm } = useConfirm();
 
   const handleDelete = async (id: string) => {
     const confirmed = await confirm({

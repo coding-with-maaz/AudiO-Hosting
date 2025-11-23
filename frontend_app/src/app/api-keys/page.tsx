@@ -49,7 +49,7 @@ export default function ApiKeysPage() {
   const createApiKey = useCreateApiKey();
   const updateApiKey = useUpdateApiKey();
   const deleteApiKey = useDeleteApiKey();
-  const confirm = useConfirm();
+  const { confirm } = useConfirm();
 
   const handleCreate = async () => {
     if (!formData.name.trim()) {

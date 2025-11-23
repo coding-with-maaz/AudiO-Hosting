@@ -93,7 +93,7 @@ export default function PlaylistDetailPage() {
     }
   };
 
-  const confirm = useConfirm();
+  const { confirm } = useConfirm();
 
   const handleDelete = async () => {
     const confirmed = await confirm({

@@ -17,7 +17,7 @@ export default function FoldersPage() {
   const { data, isLoading } = useFolders();
   const createFolder = useCreateFolder();
   const deleteFolder = useDeleteFolder();
-  const confirm = useConfirm();
+  const { confirm } = useConfirm();
 
   const handleCreate = async () => {
     if (!folderName.trim()) return;

@@ -53,7 +53,7 @@ export default function FolderDetailPage() {
   const deleteFolder = useDeleteFolder();
   const enableSharing = useEnableFolderSharing();
   const disableSharing = useDisableFolderSharing();
-  const confirm = useConfirm();
+  const { confirm } = useConfirm();
 
   const audios = audiosData?.audios || [];
 

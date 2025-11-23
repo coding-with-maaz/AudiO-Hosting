@@ -16,7 +16,7 @@ export default function TrashPage() {
   const { data, isLoading, refetch } = useTrash(selectedType === 'all' ? undefined : selectedType);
   const restoreFromTrash = useRestoreFromTrash();
   const emptyTrash = useEmptyTrash();
-  const confirm = useConfirm();
+  const { confirm } = useConfirm();
 
   // Backend returns { audios: [] } or { folders: [] } based on type
   const audios = data?.audios || [];
