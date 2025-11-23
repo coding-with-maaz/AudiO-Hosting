@@ -101,13 +101,27 @@ export default function ApiKeysPage() {
 
   const copyToClipboard = async (text: string, keyId: string) => {
     try {
-      await navigator.clipboard.writeText(text);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        // Fallback for browsers that don't support clipboard API
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
       setCopiedKeys((prev) => ({ ...prev, [keyId]: true }));
       setTimeout(() => {
         setCopiedKeys((prev) => ({ ...prev, [keyId]: false }));
       }, 2000);
     } catch (error) {
       console.error('Failed to copy:', error);
+      // Fallback: show text in alert
+      alert(`API Key: ${text}`);
     }
   };
 
