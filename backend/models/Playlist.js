@@ -51,7 +51,7 @@ module.exports = (sequelize) => {
   Playlist.associate = (models) => {
     Playlist.belongsTo(models.User, { foreignKey: 'userId', as: 'user' });
     Playlist.belongsToMany(models.Audio, {
-      through: 'PlaylistAudios',
+      through: models.PlaylistAudio,
       foreignKey: 'playlistId',
       otherKey: 'audioId',
       as: 'audios'

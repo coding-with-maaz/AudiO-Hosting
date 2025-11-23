@@ -139,7 +139,7 @@ module.exports = (sequelize) => {
     Audio.hasMany(models.Analytics, { foreignKey: 'audioId', as: 'analytics' });
     Audio.hasMany(models.Bandwidth, { foreignKey: 'audioId', as: 'bandwidth' });
     Audio.belongsToMany(models.Playlist, {
-      through: 'PlaylistAudios',
+      through: models.PlaylistAudio,
       foreignKey: 'audioId',
       otherKey: 'playlistId',
       as: 'playlists'
