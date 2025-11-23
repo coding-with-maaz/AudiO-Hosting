@@ -317,15 +317,27 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Account Status</p>
-                <p className="mt-2 text-xl font-bold text-gray-900 dark:text-white">
+                <p className={`mt-2 text-xl font-bold ${
+                  currentUser?.isEmailVerified 
+                    ? 'text-green-600 dark:text-green-400' 
+                    : 'text-yellow-600 dark:text-yellow-400'
+                }`}>
                   {currentUser?.isEmailVerified ? 'Verified' : 'Unverified'}
                 </p>
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   {currentUser?.role || 'user'}
                 </p>
               </div>
-              <div className="rounded-full bg-green-100 p-3 dark:bg-green-900/20">
-                <Shield className="h-6 w-6 text-green-600 dark:text-green-400" />
+              <div className={`rounded-full p-3 ${
+                currentUser?.isEmailVerified 
+                  ? 'bg-green-100 dark:bg-green-900/20' 
+                  : 'bg-yellow-100 dark:bg-yellow-900/20'
+              }`}>
+                {currentUser?.isEmailVerified ? (
+                  <CheckCircle2 className="h-6 w-6 text-green-600 dark:text-green-400" />
+                ) : (
+                  <AlertCircle className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
+                )}
               </div>
             </div>
           </div>
