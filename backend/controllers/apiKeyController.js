@@ -1,4 +1,15 @@
 const db = require('../models');
+const crypto = require('crypto');
+
+// Generate API key
+const generateApiKey = () => {
+  return `ak_${crypto.randomBytes(24).toString('hex')}`;
+};
+
+// Generate API secret
+const generateApiSecret = () => {
+  return crypto.randomBytes(32).toString('hex');
+};
 
 exports.createApiKey = async (req, res, next) => {
   try {
@@ -11,9 +22,15 @@ exports.createApiKey = async (req, res, next) => {
       });
     }
 
+    // Generate key and secret
+    const key = generateApiKey();
+    const secret = generateApiSecret();
+
     const apiKey = await db.ApiKey.create({
       userId: req.user.id,
       name,
+      key,
+      secret,
       rateLimit: rateLimit || 1000,
       permissions: permissions || {}
     });
