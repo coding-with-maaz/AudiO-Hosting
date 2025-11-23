@@ -41,7 +41,6 @@ exports.sendVerificationEmail = async (userId) => {
 exports.verifyEmail = async (req, res, next) => {
   try {
     const { otp } = req.body;
-    const userId = req.user?.id || req.body.userId;
 
     if (!otp) {
       return res.status(400).json({
@@ -50,14 +49,14 @@ exports.verifyEmail = async (req, res, next) => {
       });
     }
 
-    if (!userId) {
-      return res.status(400).json({
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({
         success: false,
-        message: 'User ID is required'
+        message: 'Authentication required'
       });
     }
 
-    const user = await db.User.findByPk(userId);
+    const user = await db.User.findByPk(req.user.id);
     
     if (!user) {
       return res.status(404).json({
