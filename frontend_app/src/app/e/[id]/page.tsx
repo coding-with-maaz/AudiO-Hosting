@@ -16,33 +16,26 @@ export default function EmbedAudioPage() {
   const [error, setError] = useState('');
 
   // Get customization options from URL params
+  const [shareOptions, setShareOptions] = useState({
+    hideTitle: false,
+    hideArtist: false,
+    hideCover: false,
+    autoPlay: false,
+    isCompact: false,
+  });
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search);
-      // Store params in state or use directly
-      window.shareOptions = {
+      setShareOptions({
         hideTitle: urlParams.get('hideTitle') === 'true',
         hideArtist: urlParams.get('hideArtist') === 'true',
         hideCover: urlParams.get('hideCover') === 'true',
         autoPlay: urlParams.get('autoplay') === 'true',
         isCompact: urlParams.get('compact') === 'true',
-      };
+      });
     }
   }, []);
-
-  const getShareOptions = () => {
-    if (typeof window === 'undefined') return {};
-    const urlParams = new URLSearchParams(window.location.search);
-    return {
-      hideTitle: urlParams.get('hideTitle') === 'true',
-      hideArtist: urlParams.get('hideArtist') === 'true',
-      hideCover: urlParams.get('hideCover') === 'true',
-      autoPlay: urlParams.get('autoplay') === 'true',
-      isCompact: urlParams.get('compact') === 'true',
-    };
-  };
-
-  const shareOptions = getShareOptions();
 
   useEffect(() => {
     fetchAudio();
