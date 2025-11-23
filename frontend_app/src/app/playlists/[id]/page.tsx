@@ -29,6 +29,10 @@ import {
   Share2,
   X,
   GripVertical,
+  Search,
+  CheckCircle2,
+  Clock,
+  HardDrive,
 } from 'lucide-react';
 import Link from 'next/link';
 import { AudioPlayer } from '@/components/audio/AudioPlayer';
@@ -47,6 +51,7 @@ export default function PlaylistDetailPage() {
   const [editIsPublic, setEditIsPublic] = useState(false);
   const [selectedAudios, setSelectedAudios] = useState<string[]>([]);
   const [currentPlayingAudio, setCurrentPlayingAudio] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const { data: playlist, isLoading: playlistLoading, refetch: refetchPlaylist } = usePlaylist(playlistId);
   const { data: allAudiosData } = useMyAudios();
@@ -110,7 +115,8 @@ export default function PlaylistDetailPage() {
       });
       setShowAddModal(false);
       setSelectedAudios([]);
-      refetchPlaylist();
+      // Refetch playlist to show updated tracks
+      await refetchPlaylist();
     } catch (error: any) {
       alert(error?.response?.data?.message || 'Failed to add audios to playlist');
     }
@@ -179,10 +185,18 @@ export default function PlaylistDetailPage() {
     );
   }
 
-  // Filter out audios already in playlist
-  const availableAudios = allAudios.filter(
-    (audio: any) => !audios.some((playlistAudio: any) => playlistAudio.id === audio.id)
-  );
+  // Filter out audios already in playlist and apply search filter
+  const availableAudios = allAudios
+    .filter((audio: any) => !audios.some((playlistAudio: any) => playlistAudio.id === audio.id))
+    .filter((audio: any) => {
+      if (!searchQuery.trim()) return true;
+      const query = searchQuery.toLowerCase();
+      return (
+        audio.title?.toLowerCase().includes(query) ||
+        audio.description?.toLowerCase().includes(query) ||
+        audio.user?.username?.toLowerCase().includes(query)
+      );
+    });
 
   return (
     <DashboardLayout>
@@ -469,76 +483,173 @@ export default function PlaylistDetailPage() {
 
         {/* Add Tracks Modal */}
         {showAddModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="w-full max-w-2xl rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800 max-h-[80vh] overflow-y-auto">
-              <h2 className="mb-4 text-xl font-bold text-gray-900 dark:text-white">
-                Add Tracks to Playlist
-              </h2>
-              {availableAudios.length > 0 ? (
-                <>
-                  <div className="mb-4 max-h-96 overflow-y-auto space-y-2">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+            <div className="w-full max-w-4xl rounded-lg bg-white shadow-xl dark:bg-gray-800 max-h-[90vh] flex flex-col">
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                    Add Tracks to Playlist
+                  </h2>
+                  <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                    Select audio files to add to "{playlist.name}"
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowAddModal(false);
+                    setSelectedAudios([]);
+                    setSearchQuery('');
+                  }}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Search Bar */}
+              <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search by title, description, or artist..."
+                    className="w-full rounded-lg border border-gray-300 bg-white pl-10 pr-4 py-2 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+                  />
+                </div>
+                {selectedAudios.length > 0 && (
+                  <div className="mt-3 flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400">
+                    <CheckCircle2 className="h-4 w-4" />
+                    <span>{selectedAudios.length} track{selectedAudios.length !== 1 ? 's' : ''} selected</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Tracks List */}
+              <div className="flex-1 overflow-y-auto px-6 py-4">
+                {availableAudios.length > 0 ? (
+                  <div className="space-y-2">
                     {availableAudios.map((audio: any) => (
                       <div
                         key={audio.id}
-                        className="flex items-center gap-3 rounded-lg border border-gray-200 p-3 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700"
+                        className={`flex items-center gap-4 rounded-lg border p-4 transition-all ${
+                          selectedAudios.includes(audio.id)
+                            ? 'border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-900/20'
+                            : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:hover:border-gray-600'
+                        }`}
                       >
-                        <input
-                          type="checkbox"
-                          checked={selectedAudios.includes(audio.id)}
-                          onChange={() => toggleSelectAudio(audio.id)}
-                          className="rounded border-gray-300"
-                        />
-                        <Music className="h-5 w-5 text-purple-600" />
-                        <div className="flex-1">
-                          <h4 className="font-medium text-gray-900 dark:text-white">
-                            {audio.title}
-                          </h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">
-                            {formatFileSize(audio.fileSize)}
-                            {audio.duration && ` • ${formatDuration(audio.duration)}`}
-                          </p>
+                        <div className="flex items-center gap-3 flex-1">
+                          <input
+                            type="checkbox"
+                            checked={selectedAudios.includes(audio.id)}
+                            onChange={() => toggleSelectAudio(audio.id)}
+                            className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          />
+                          <div className="rounded-lg bg-purple-100 p-2 dark:bg-purple-900/20">
+                            <Music className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-semibold text-gray-900 dark:text-white truncate">
+                              {audio.title}
+                            </h4>
+                            <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-600 dark:text-gray-400">
+                              {audio.user?.username && (
+                                <span className="flex items-center gap-1">
+                                  <User className="h-3 w-3" />
+                                  {audio.user.username}
+                                </span>
+                              )}
+                              <span className="flex items-center gap-1">
+                                <HardDrive className="h-3 w-3" />
+                                {formatFileSize(audio.fileSize)}
+                              </span>
+                              {audio.duration && (
+                                <span className="flex items-center gap-1">
+                                  <Clock className="h-3 w-3" />
+                                  {formatDuration(audio.duration)}
+                                </span>
+                              )}
+                              <span className="flex items-center gap-1">
+                                <Calendar className="h-3 w-3" />
+                                {formatDate(audio.createdAt)}
+                              </span>
+                            </div>
+                            {audio.description && (
+                              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-1">
+                                {audio.description}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Link href={`/audio/${audio.id}`}>
+                            <Button variant="ghost" size="sm">
+                              <Play className="h-4 w-4" />
+                            </Button>
+                          </Link>
                         </div>
                       </div>
                     ))}
                   </div>
-                  <div className="flex space-x-2">
-                    <Button
-                      onClick={handleAddAudios}
-                      disabled={selectedAudios.length === 0 || addToPlaylist.isPending}
-                      isLoading={addToPlaylist.isPending}
-                      className="flex-1"
-                    >
-                      Add {selectedAudios.length > 0 ? `${selectedAudios.length} ` : ''}Track{selectedAudios.length !== 1 ? 's' : ''}
-                    </Button>
+                ) : searchQuery.trim() ? (
+                  <div className="text-center py-12">
+                    <Search className="mx-auto h-12 w-12 text-gray-400" />
+                    <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-white">
+                      No tracks found
+                    </h3>
+                    <p className="mt-2 text-gray-600 dark:text-gray-400">
+                      No audio files match your search query "{searchQuery}"
+                    </p>
                     <Button
                       variant="outline"
-                      onClick={() => {
-                        setShowAddModal(false);
-                        setSelectedAudios([]);
-                      }}
+                      onClick={() => setSearchQuery('')}
+                      className="mt-4"
                     >
-                      Cancel
+                      Clear Search
                     </Button>
                   </div>
-                </>
-              ) : (
-                <div className="text-center py-8">
-                  <Music className="mx-auto h-12 w-12 text-gray-400" />
-                  <p className="mt-4 text-gray-600 dark:text-gray-400">
-                    No available tracks to add. All your audios are already in this playlist.
-                  </p>
+                ) : (
+                  <div className="text-center py-12">
+                    <Music className="mx-auto h-12 w-12 text-gray-400" />
+                    <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-white">
+                      No available tracks
+                    </h3>
+                    <p className="mt-2 text-gray-600 dark:text-gray-400">
+                      All your audio files are already in this playlist.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="flex items-center justify-between border-t border-gray-200 px-6 py-4 dark:border-gray-700">
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  {availableAudios.length} track{availableAudios.length !== 1 ? 's' : ''} available
+                  {searchQuery && ` matching "${searchQuery}"`}
+                </div>
+                <div className="flex gap-2">
                   <Button
                     variant="outline"
                     onClick={() => {
                       setShowAddModal(false);
                       setSelectedAudios([]);
+                      setSearchQuery('');
                     }}
-                    className="mt-4"
                   >
-                    Close
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleAddAudios}
+                    disabled={selectedAudios.length === 0 || addToPlaylist.isPending}
+                    isLoading={addToPlaylist.isPending}
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add {selectedAudios.length > 0 ? `${selectedAudios.length} ` : ''}Track{selectedAudios.length !== 1 ? 's' : ''}
                   </Button>
                 </div>
-              )}
+              </div>
             </div>
           </div>
         )}

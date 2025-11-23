@@ -59,6 +59,7 @@ export function useAddToPlaylist() {
       playlistAPI.addAudios(id, audioIds).then(res => res.data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['playlist', variables.id] });
+      queryClient.invalidateQueries({ queryKey: ['playlists'] });
     },
   });
 }
