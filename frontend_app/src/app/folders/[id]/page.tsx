@@ -126,12 +126,30 @@ export default function FolderDetailPage() {
     return `${window.location.origin}/f/${folder.shareToken}`;
   };
 
-  const copyShareLink = () => {
+  const copyShareLink = async () => {
     const link = getShareLink();
     if (link) {
-      navigator.clipboard.writeText(link);
-      setCopiedLink(true);
-      setTimeout(() => setCopiedLink(false), 2000);
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(link);
+        } else {
+          // Fallback for browsers that don't support clipboard API
+          const textArea = document.createElement('textarea');
+          textArea.value = link;
+          textArea.style.position = 'fixed';
+          textArea.style.left = '-999999px';
+          document.body.appendChild(textArea);
+          textArea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textArea);
+        }
+        setCopiedLink(true);
+        setTimeout(() => setCopiedLink(false), 2000);
+      } catch (error) {
+        console.error('Failed to copy link:', error);
+        // Fallback: show link in alert
+        alert(`Share link: ${link}`);
+      }
     }
   };
 
@@ -143,9 +161,27 @@ export default function FolderDetailPage() {
     return `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/e/${audioId}`;
   };
 
-  const copyToClipboard = (text: string, type: string) => {
-    navigator.clipboard.writeText(text);
-    alert(`${type} link copied to clipboard!`);
+  const copyToClipboard = async (text: string, type: string) => {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        alert(`${type} link copied to clipboard!`);
+      } else {
+        // Fallback for browsers that don't support clipboard API
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        alert(`${type} link copied to clipboard!`);
+      }
+    } catch (error) {
+      console.error('Failed to copy:', error);
+      alert(`${type} link: ${text}`);
+    }
   };
 
   if (folderLoading) {

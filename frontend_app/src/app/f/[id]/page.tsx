@@ -91,9 +91,27 @@ export default function SharedFolderPage() {
     return `${API_URL}/e/${audioId}`;
   };
 
-  const copyToClipboard = (text: string, type: string) => {
-    navigator.clipboard.writeText(text);
-    alert(`${type} link copied to clipboard!`);
+  const copyToClipboard = async (text: string, type: string) => {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        alert(`${type} link copied to clipboard!`);
+      } else {
+        // Fallback for browsers that don't support clipboard API
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        alert(`${type} link copied to clipboard!`);
+      }
+    } catch (error) {
+      console.error('Failed to copy:', error);
+      alert(`${type} link: ${text}`);
+    }
   };
 
   if (isLoading) {
