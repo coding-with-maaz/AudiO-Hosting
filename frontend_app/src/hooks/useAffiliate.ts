@@ -4,7 +4,7 @@ import { affiliateAPI } from '@/lib/api';
 export function useMyAffiliate() {
   return useQuery({
     queryKey: ['affiliate'],
-    queryFn: () => affiliateAPI.getMy().then(res => res.data.data),
+    queryFn: () => affiliateAPI.getMy().then(res => res.data.data).catch(() => ({ affiliate: null })),
   });
 }
 

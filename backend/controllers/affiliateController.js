@@ -50,16 +50,10 @@ exports.getMyAffiliate = async (req, res, next) => {
       ]
     });
 
-    if (!affiliate) {
-      return res.status(404).json({
-        success: false,
-        message: 'Affiliate account not found'
-      });
-    }
-
+    // Return success even if affiliate doesn't exist (frontend will handle it)
     res.json({
       success: true,
-      data: { affiliate }
+      data: { affiliate: affiliate || null }
     });
   } catch (error) {
     next(error);
