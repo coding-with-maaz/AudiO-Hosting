@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { 
@@ -54,6 +54,14 @@ export default function FolderDetailPage() {
   const disableSharing = useDisableFolderSharing();
 
   const audios = audiosData?.audios || [];
+
+  // Initialize edit form when folder loads
+  useEffect(() => {
+    if (folder && showEditModal) {
+      setEditName(folder.name || '');
+      setEditDescription(folder.description || '');
+    }
+  }, [folder, showEditModal]);
 
   const handleUpdate = async () => {
     if (!editName.trim()) return;
@@ -165,12 +173,6 @@ export default function FolderDetailPage() {
         </div>
       </DashboardLayout>
     );
-  }
-
-  // Initialize edit form when folder loads
-  if (showEditModal && !editName) {
-    setEditName(folder.name || '');
-    setEditDescription(folder.description || '');
   }
 
   return (
