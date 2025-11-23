@@ -24,6 +24,20 @@ interface AuthState {
   updateUser: (user: Partial<User>) => void;
 }
 
+// Helper function to set cookie
+function setCookie(name: string, value: string, days: number = 7) {
+  if (typeof window === 'undefined') return;
+  const expires = new Date();
+  expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Lax`;
+}
+
+// Helper function to delete cookie
+function deleteCookie(name: string) {
+  if (typeof window === 'undefined') return;
+  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
+}
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
@@ -33,12 +47,14 @@ export const useAuthStore = create<AuthState>()(
       setAuth: (user, token) => {
         if (typeof window !== 'undefined') {
           localStorage.setItem('token', token);
+          setCookie('token', token, 7); // Set cookie for 7 days
         }
         set({ user, token, isAuthenticated: true });
       },
       logout: () => {
         if (typeof window !== 'undefined') {
           localStorage.removeItem('token');
+          deleteCookie('token');
         }
         set({ user: null, token: null, isAuthenticated: false });
       },
