@@ -94,13 +94,17 @@ export default function FolderDetailPage() {
 
   const handleEnableSharing = async () => {
     try {
-      await enableSharing.mutateAsync({
+      const result = await enableSharing.mutateAsync({
         id: folderId,
         password: sharePassword || undefined,
       });
       setShowShareModal(false);
       setSharePassword('');
       refetchFolder();
+      // Show success message with share link
+      if (result?.data?.shareLink) {
+        alert(`Sharing enabled! Share link: ${result.data.shareLink}`);
+      }
     } catch (error: any) {
       alert(error?.response?.data?.message || 'Failed to enable sharing');
     }
@@ -118,8 +122,8 @@ export default function FolderDetailPage() {
   };
 
   const getShareLink = () => {
-    if (!folder?.publicLink) return '';
-    return `${window.location.origin}/shared/folder/${folder.publicLink}`;
+    if (!folder?.shareToken) return '';
+    return `${window.location.origin}/f/${folder.shareToken}`;
   };
 
   const copyShareLink = () => {
@@ -216,25 +220,14 @@ export default function FolderDetailPage() {
               <Edit className="mr-2 h-4 w-4" />
               Edit
             </Button>
-            {folder.isPublic ? (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowShareModal(true)}
-              >
-                <Share2 className="mr-2 h-4 w-4" />
-                Share Settings
-              </Button>
-            ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowShareModal(true)}
-              >
-                <Share2 className="mr-2 h-4 w-4" />
-                Share
-              </Button>
-            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowShareModal(true)}
+            >
+              <Share2 className="mr-2 h-4 w-4" />
+              {folder.isShared ? 'Share Settings' : 'Share'}
+            </Button>
             <Button variant="danger" size="sm" onClick={handleDelete}>
               <Trash2 className="mr-2 h-4 w-4" />
               Delete
@@ -271,8 +264,8 @@ export default function FolderDetailPage() {
             </div>
           </div>
           <div className="rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
-            <div className="flex items-center gap-3">
-              {folder.isPublic ? (
+              <div className="flex items-center gap-3">
+              {folder.isShared ? (
                 <Unlock className="h-5 w-5 text-green-600" />
               ) : (
                 <Lock className="h-5 w-5 text-yellow-600" />
@@ -282,15 +275,15 @@ export default function FolderDetailPage() {
                   Status
                 </p>
                 <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                  {folder.isPublic ? 'Public' : 'Private'}
+                  {folder.isShared ? 'Shared' : 'Private'}
                 </p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Share Link (if public) */}
-        {folder.isPublic && folder.publicLink && (
+        {/* Share Link (if shared) */}
+        {folder.isShared && folder.shareToken && (
           <div className="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-900/20">
             <div className="flex items-center justify-between">
               <div>
@@ -466,15 +459,15 @@ export default function FolderDetailPage() {
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
             <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
               <h2 className="mb-4 text-xl font-bold text-gray-900 dark:text-white">
-                {folder.isPublic ? 'Share Settings' : 'Enable Sharing'}
+                {folder.isShared ? 'Share Settings' : 'Enable Sharing'}
               </h2>
-              {folder.isPublic ? (
+              {folder.isShared ? (
                 <div className="space-y-4">
                   <div className="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-900/20">
                     <p className="text-sm font-medium text-green-900 dark:text-green-100">
                       Sharing is enabled
                     </p>
-                    {folder.publicLink && (
+                    {folder.shareToken && (
                       <div className="mt-2">
                         <p className="text-xs text-green-800 dark:text-green-200">Share Link:</p>
                         <p className="mt-1 break-all text-sm text-green-900 dark:text-green-100">
