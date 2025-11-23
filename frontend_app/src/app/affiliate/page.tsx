@@ -31,11 +31,11 @@ export default function AffiliatePage() {
   const [copiedLink, setCopiedLink] = useState(false);
 
   const { data: affiliateData, isLoading: affiliateLoading, refetch: refetchAffiliate } = useMyAffiliate();
+  const affiliate = affiliateData?.affiliate;
   const { data: statsData, isLoading: statsLoading, refetch: refetchStats } = useAffiliateStats();
   const createAffiliate = useCreateAffiliate();
   const requestPayout = useRequestPayout();
 
-  const affiliate = affiliateData?.affiliate;
   const stats = statsData?.stats;
   const affiliateInfo = statsData?.affiliate;
 
