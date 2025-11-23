@@ -227,8 +227,7 @@ export function AudioPlayer({
 
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
 
-  const [audioError, setAudioError] = useState(false);
-
+  // Error handling useEffect
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
