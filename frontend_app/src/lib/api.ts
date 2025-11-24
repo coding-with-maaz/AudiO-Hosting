@@ -84,8 +84,10 @@ export const audioAPI = {
     headers: { 'Content-Type': 'multipart/form-data' },
   }),
   getAll: (params?: any) => api.get('/audio', { params }),
+  getPublicAudios: (params?: any) => api.get('/audio/public', { params }),
   getById: (id: string) => api.get(`/audio/${id}`),
   getMyAudios: (params?: any) => api.get('/audio/my/list', { params }),
+  clone: (id: string, folderId?: string) => api.post(`/audio/${id}/clone`, { folderId }),
   update: (id: string, data: any) => api.put(`/audio/${id}`, data),
   rename: (id: string, title: string) => api.put(`/audio/${id}/rename`, { title }),
   delete: (id: string, permanent?: boolean) => 

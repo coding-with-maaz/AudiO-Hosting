@@ -128,3 +128,23 @@ export function useBulkMove() {
   });
 }
 
+export function usePublicAudios(params?: any) {
+  return useQuery({
+    queryKey: ['public-audios', params],
+    queryFn: () => audioAPI.getPublicAudios(params).then(res => res.data.data),
+  });
+}
+
+export function useCloneAudio() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, folderId }: { id: string; folderId?: string }) =>
+      audioAPI.clone(id, folderId).then(res => res.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['public-audios'] });
+      queryClient.invalidateQueries({ queryKey: ['my-audios'] });
+    },
+  });
+}
+

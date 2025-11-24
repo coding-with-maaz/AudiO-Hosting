@@ -22,6 +22,7 @@ import {
   X,
   LogOut,
   User,
+  Compass,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
@@ -36,6 +37,7 @@ const navigation: NavItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
   { name: 'Upload', href: '/upload', icon: Upload },
   { name: 'My Audios', href: '/my-audios', icon: Music },
+  { name: 'Discover', href: '/discover', icon: Compass },
   { name: 'Folders', href: '/folders', icon: Folder },
   { name: 'Playlists', href: '/playlists', icon: ListMusic },
   { name: 'Favorites', href: '/favorites', icon: Heart },
