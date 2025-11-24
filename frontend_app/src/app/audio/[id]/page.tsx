@@ -49,7 +49,7 @@ export default function AudioDetailPage() {
     try {
       await updateAudio.mutateAsync({
         id: audioId,
-        data: { isPublic: !audio.isPublic }
+        data: { isPublic: String(!audio.isPublic) }
       });
     } catch (error: any) {
       alert(error?.response?.data?.message || 'Failed to update audio visibility');

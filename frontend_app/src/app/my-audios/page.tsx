@@ -2,10 +2,10 @@
 
 import { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { useMyAudios, useDeleteAudio } from '@/hooks/useAudio';
+import { useMyAudios, useDeleteAudio, useUpdateAudio } from '@/hooks/useAudio';
 import { formatFileSize, formatDate } from '@/utils/format';
 import { Button } from '@/components/ui/Button';
-import { Music, Trash2, Edit, Download, Share2, MoreVertical, Copy } from 'lucide-react';
+import { Music, Trash2, Edit, Download, Share2, MoreVertical, Copy, Globe, Lock } from 'lucide-react';
 import Link from 'next/link';
 import { useConfirm } from '@/contexts/ConfirmContext';
 
@@ -14,6 +14,7 @@ export default function MyAudiosPage() {
   const [selectedAudios, setSelectedAudios] = useState<string[]>([]);
   const { data, isLoading } = useMyAudios({ page, limit: 20 });
   const deleteAudio = useDeleteAudio();
+  const updateAudio = useUpdateAudio();
   const { confirm } = useConfirm();
 
   const handleDelete = async (id: string) => {
@@ -55,6 +56,20 @@ export default function MyAudiosPage() {
     setSelectedAudios((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
     );
+  };
+
+  const handleTogglePublic = async (audio: any, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    try {
+      await updateAudio.mutateAsync({
+        id: audio.id,
+        data: { isPublic: String(!audio.isPublic) }
+      });
+    } catch (error: any) {
+      alert(error?.response?.data?.message || 'Failed to update audio visibility');
+    }
   };
 
   if (isLoading) {
@@ -146,6 +161,9 @@ export default function MyAudiosPage() {
                     <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                       Date
                     </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                      Visibility
+                    </th>
                     <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                       Actions
                     </th>
@@ -202,6 +220,32 @@ export default function MyAudiosPage() {
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                         {formatDate(audio.createdAt)}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={(e) => handleTogglePublic(audio, e)}
+                            disabled={updateAudio.isPending}
+                            className={`flex items-center gap-1 rounded px-2 py-1 text-xs font-medium transition-colors ${
+                              audio.isPublic
+                                ? 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-300'
+                                : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300'
+                            }`}
+                            title={audio.isPublic ? 'Make Private' : 'Make Public'}
+                          >
+                            {audio.isPublic ? (
+                              <>
+                                <Globe className="h-3 w-3" />
+                                Public
+                              </>
+                            ) : (
+                              <>
+                                <Lock className="h-3 w-3" />
+                                Private
+                              </>
+                            )}
+                          </button>
+                        </div>
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end space-x-2">
