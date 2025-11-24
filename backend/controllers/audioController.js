@@ -174,10 +174,13 @@ exports.getAudio = async (req, res, next) => {
     }
 
     // Check if user has access
-    if (!audio.isPublic && audio.userId !== req.user?.id) {
+    // Allow access if audio is public OR if user owns the audio
+    const hasAccess = audio.isPublic || (req.user && String(audio.userId) === String(req.user.id));
+    
+    if (!hasAccess) {
       return res.status(403).json({
         success: false,
-        message: 'Access denied'
+        message: 'Access denied. This audio is private and you do not have permission to view it.'
       });
     }
 
