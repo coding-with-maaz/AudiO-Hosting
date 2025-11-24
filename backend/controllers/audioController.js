@@ -475,10 +475,13 @@ exports.cloneAudio = async (req, res, next) => {
     const { id } = req.params;
     const { folderId } = req.body;
 
-    // Find the original audio
+    // Find the original audio by ID or shareToken
     const originalAudio = await db.Audio.findOne({
       where: {
-        id,
+        [Op.or]: [
+          { id },
+          { shareToken: id }
+        ],
         isPublic: true,
         isActive: true,
         isDeleted: false
@@ -495,12 +498,12 @@ exports.cloneAudio = async (req, res, next) => {
     if (!originalAudio) {
       return res.status(404).json({
         success: false,
-        message: 'Audio not found or not available for cloning'
+        message: 'Audio not found or not available for cloning. Make sure the audio is public.'
       });
     }
 
     // Check if user is trying to clone their own audio
-    if (originalAudio.userId === req.user.id) {
+    if (String(originalAudio.userId) === String(req.user.id)) {
       return res.status(400).json({
         success: false,
         message: 'You cannot clone your own audio'
