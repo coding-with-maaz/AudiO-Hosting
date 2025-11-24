@@ -53,6 +53,7 @@ export function useUpdateAudio() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['audio', variables.id] });
       queryClient.invalidateQueries({ queryKey: ['my-audios'] });
+      queryClient.invalidateQueries({ queryKey: ['public-audios'] });
     },
   });
 }

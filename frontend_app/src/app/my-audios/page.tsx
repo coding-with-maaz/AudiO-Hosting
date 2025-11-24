@@ -67,6 +67,10 @@ export default function MyAudiosPage() {
         id: audio.id,
         data: { isPublic: String(!audio.isPublic) }
       });
+      // Invalidate queries to refresh the list
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     } catch (error: any) {
       alert(error?.response?.data?.message || 'Failed to update audio visibility');
     }

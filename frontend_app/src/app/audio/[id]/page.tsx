@@ -51,6 +51,10 @@ export default function AudioDetailPage() {
         id: audioId,
         data: { isPublic: String(!audio.isPublic) }
       });
+      // Refresh audio data to get updated shareToken
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     } catch (error: any) {
       alert(error?.response?.data?.message || 'Failed to update audio visibility');
     }
