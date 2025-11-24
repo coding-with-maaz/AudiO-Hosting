@@ -231,7 +231,7 @@ export default function EmbedAudioPage() {
                     <option key={folder.id} value={folder.id}>
                       {folder.name}
                     </option>
-                  ))}
+                  )) || []}
                 </select>
               </div>
               <div className="flex space-x-2">
