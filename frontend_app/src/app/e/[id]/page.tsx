@@ -96,15 +96,17 @@ export default function EmbedAudioPage() {
   };
 
   const handleClone = async () => {
+    if (!audio) return;
+
+    // If not logged in, redirect to login
     if (!user) {
-      alert('Please login to clone this audio to your account');
+      const loginUrl = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
+      window.location.href = loginUrl;
       return;
     }
 
-    if (!audio) return;
-
     // Check if user is trying to clone their own audio
-    if (audio.userId === user.id) {
+    if (String(audio.userId) === String(user.id)) {
       alert('This is your own audio. You cannot clone it.');
       return;
     }
@@ -156,16 +158,21 @@ export default function EmbedAudioPage() {
     );
   }
 
+  // Check if user can clone this audio
+  // Show clone button if audio exists and user doesn't own it
+  const isOwnAudio = user && audio && String(audio.userId) === String(user.id);
+  const canClone = audio && !isOwnAudio;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-4">
       <div className="w-full max-w-4xl">
-        {/* Clone Button */}
-        {user && audio && audio.userId !== user.id && (
+        {/* Clone Button - Show if audio exists and user doesn't own it */}
+        {canClone && (
           <div className="mb-4 flex justify-end">
             <Button
               onClick={handleClone}
               disabled={cloneAudio.isPending || cloned}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg"
             >
               {cloned ? (
                 <>
@@ -175,7 +182,7 @@ export default function EmbedAudioPage() {
               ) : (
                 <>
                   <Copy className="mr-2 h-4 w-4" />
-                  Clone to My Account
+                  {user ? 'Clone to My Account' : 'Login to Clone'}
                 </>
               )}
             </Button>
