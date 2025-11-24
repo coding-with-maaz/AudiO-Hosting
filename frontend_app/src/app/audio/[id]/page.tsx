@@ -47,11 +47,14 @@ export default function AudioDetailPage() {
   };
 
   const getDirectLink = () => {
-    // Use public download route if shareToken exists, otherwise use authenticated route
+    // Use public download route - it accepts both shareToken and audio ID
+    // The backend will check ownership for private audios
     if (audio?.shareToken) {
       return `${API_URL}/d/${audio.shareToken}`;
     }
-    return `${API_URL}/api/audio/${audioId}/download`;
+    // For private audios without shareToken, use audio ID
+    // The /d/ route will check if user owns the audio
+    return `${API_URL}/d/${audioId}`;
   };
 
   const copyToClipboard = async (text: string, type: string) => {

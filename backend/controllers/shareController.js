@@ -93,6 +93,20 @@ exports.serveDirectDownload = async (req, res, next) => {
     const { id } = req.params;
     const { password } = req.query;
 
+    // Try to get user from token (optional auth)
+    let user = null;
+    try {
+      const jwt = require('jsonwebtoken');
+      const config = require('../config/config');
+      const token = req.headers.authorization?.split(' ')[1] || req.cookies?.token;
+      if (token) {
+        const decoded = jwt.verify(token, config.jwt.secret);
+        user = await db.User.findByPk(decoded.userId);
+      }
+    } catch (error) {
+      // Token invalid or not provided, continue without user
+    }
+
     // Find by shareToken or id
     const audio = await db.Audio.findOne({
       where: {
@@ -108,6 +122,17 @@ exports.serveDirectDownload = async (req, res, next) => {
       return res.status(404).json({
         success: false,
         message: 'Audio not found'
+      });
+    }
+
+    // Check access - allow if public, has shareToken match, or user owns it
+    const isOwner = user && String(audio.userId) === String(user.id);
+    const hasShareToken = audio.shareToken === id;
+    
+    if (!audio.isPublic && !hasShareToken && !isOwner) {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied'
       });
     }
 
@@ -141,8 +166,8 @@ exports.serveDirectDownload = async (req, res, next) => {
     // Track bandwidth
     const fileSize = fs.statSync(audio.filePath).size;
     const { trackBandwidth } = require('../utils/bandwidthTracker');
-    if (req.user) {
-      await trackBandwidth(req.user.id, fileSize, 'download', audio.id, req.ip);
+    if (user) {
+      await trackBandwidth(user.id, fileSize, 'download', audio.id, req.ip);
     }
 
     res.download(audio.filePath, audio.originalFilename);
