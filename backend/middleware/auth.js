@@ -56,6 +56,31 @@ const authenticate = async (req, res, next) => {
   }
 };
 
+// Optional authentication - sets req.user if token exists, but doesn't fail if not
+const optionalAuthenticate = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1] || req.cookies?.token;
+
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, config.jwt.secret);
+        const user = await db.User.findByPk(decoded.userId);
+
+        if (user && user.isActive) {
+          req.user = user;
+        }
+      } catch (error) {
+        // Token invalid or expired, but continue without user
+        // This allows public access while still checking ownership if token is valid
+      }
+    }
+
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+
 const authorize = (...roles) => {
   return (req, res, next) => {
     if (!req.user) {
@@ -78,6 +103,7 @@ const authorize = (...roles) => {
 
 module.exports = {
   authenticate,
+  optionalAuthenticate,
   authorize
 };
 

@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const audioController = require('../controllers/audioController');
-const { authenticate, authorize } = require('../middleware/auth');
+const { authenticate, optionalAuthenticate, authorize } = require('../middleware/auth');
 const { single } = require('../middleware/upload');
 
 // Public routes
 router.get('/', audioController.getAudios);
 router.get('/public', audioController.getPublicAudios); // Browse public audios from other users
-router.get('/:id', audioController.getAudio);
+router.get('/:id', optionalAuthenticate, audioController.getAudio); // Optional auth to check ownership
 router.get('/:id/download', audioController.downloadAudio);
 
 // Protected routes
