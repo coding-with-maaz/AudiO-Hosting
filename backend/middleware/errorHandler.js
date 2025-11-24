@@ -32,10 +32,16 @@ const errorHandler = (err, req, res, next) => {
     };
   }
 
-  res.status(error.statusCode || 500).json({
+  const statusCode = error.statusCode || 500;
+  const message = error.message || err.message || 'Server Error';
+  
+  res.status(statusCode).json({
     success: false,
-    message: error.message || 'Server Error',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    message: message,
+    ...(process.env.NODE_ENV === 'development' && { 
+      stack: err.stack,
+      error: err.name || 'Unknown Error'
+    })
   });
 };
 

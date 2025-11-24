@@ -475,10 +475,19 @@ exports.cloneAudio = async (req, res, next) => {
     const { id } = req.params;
     const { folderId } = req.body;
 
+    console.log('Clone request:', { id, folderId, userId: req.user?.id });
+
     if (!id) {
       return res.status(400).json({
         success: false,
         message: 'Audio ID or shareToken is required'
+      });
+    }
+
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required'
       });
     }
 
