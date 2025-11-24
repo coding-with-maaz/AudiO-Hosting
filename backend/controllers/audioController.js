@@ -566,6 +566,14 @@ exports.cloneAudio = async (req, res, next) => {
     // Copy the file
     fs.copyFileSync(originalAudio.filePath, newFilePath);
 
+    // Parse metadata if it's a string
+    let originalMetadata = {};
+    if (originalAudio.metadata) {
+      originalMetadata = typeof originalAudio.metadata === 'string' 
+        ? JSON.parse(originalAudio.metadata) 
+        : originalAudio.metadata;
+    }
+
     // Create cloned audio record
     const clonedAudio = await db.Audio.create({
       userId: user.id,
@@ -576,13 +584,13 @@ exports.cloneAudio = async (req, res, next) => {
       originalFilename: originalAudio.originalFilename,
       filePath: newFilePath,
       fileSize: originalAudio.fileSize,
-      duration: originalAudio.duration,
+      duration: originalAudio.duration || null,
       mimeType: originalAudio.mimeType,
-      thumbnail: originalAudio.thumbnail,
+      thumbnail: originalAudio.thumbnail || null,
       isPublic: false, // Cloned audios are private by default
-      tags: originalAudio.tags || [],
+      tags: Array.isArray(originalAudio.tags) ? originalAudio.tags : [],
       metadata: {
-        ...originalAudio.metadata,
+        ...originalMetadata,
         clonedFrom: originalAudio.id,
         clonedAt: new Date().toISOString(),
         originalOwner: originalAudio.userId
