@@ -129,6 +129,13 @@ exports.serveDirectDownload = async (req, res, next) => {
     const isOwner = user && String(audio.userId) === String(user.id);
     const hasShareToken = audio.shareToken === id;
     
+    // If user owns the audio but it doesn't have a shareToken, generate one
+    if (isOwner && !audio.shareToken) {
+      const shareToken = generateShareToken();
+      await audio.update({ shareToken });
+      audio.shareToken = shareToken;
+    }
+    
     if (!audio.isPublic && !hasShareToken && !isOwner) {
       return res.status(403).json({
         success: false,

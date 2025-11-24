@@ -237,14 +237,22 @@ exports.updateAudio = async (req, res, next) => {
       }
     }
 
-    await audio.update({
+    const updateData: any = {
       title: title || audio.title,
       description: description !== undefined ? description : audio.description,
       isPublic: isPublic !== undefined ? isPublic === 'true' : audio.isPublic,
       tags: tags ? JSON.parse(tags) : audio.tags,
       folderId: folderId !== undefined ? folderId : audio.folderId,
       password: password !== undefined ? password : audio.password
-    });
+    };
+
+    // Generate shareToken if making audio public and it doesn't have one
+    if (updateData.isPublic === 'true' && !audio.shareToken) {
+      const crypto = require('crypto');
+      updateData.shareToken = crypto.randomBytes(16).toString('hex');
+    }
+
+    await audio.update(updateData);
 
     res.json({
       success: true,
