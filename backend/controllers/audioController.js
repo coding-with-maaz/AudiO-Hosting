@@ -475,6 +475,13 @@ exports.cloneAudio = async (req, res, next) => {
     const { id } = req.params;
     const { folderId } = req.body;
 
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: 'Audio ID or shareToken is required'
+      });
+    }
+
     // Find the original audio by ID or shareToken
     const originalAudio = await db.Audio.findOne({
       where: {
@@ -482,7 +489,6 @@ exports.cloneAudio = async (req, res, next) => {
           { id },
           { shareToken: id }
         ],
-        isPublic: true,
         isActive: true,
         isDeleted: false
       },
@@ -498,7 +504,15 @@ exports.cloneAudio = async (req, res, next) => {
     if (!originalAudio) {
       return res.status(404).json({
         success: false,
-        message: 'Audio not found or not available for cloning. Make sure the audio is public.'
+        message: 'Audio not found or has been deleted'
+      });
+    }
+
+    // Check if audio is public
+    if (!originalAudio.isPublic) {
+      return res.status(403).json({
+        success: false,
+        message: 'This audio is not public and cannot be cloned'
       });
     }
 
@@ -597,7 +611,12 @@ exports.cloneAudio = async (req, res, next) => {
       data: { audio: clonedAudio }
     });
   } catch (error) {
-    next(error);
+    console.error('Clone audio error:', error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || 'Failed to clone audio',
+      error: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 };
 
