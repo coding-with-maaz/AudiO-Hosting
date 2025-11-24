@@ -2,9 +2,10 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { useAudio } from '@/hooks/useAudio';
+import { useAudio, useUpdateAudio } from '@/hooks/useAudio';
 import { formatFileSize, formatDate, formatDuration } from '@/utils/format';
 import { Button } from '@/components/ui/Button';
+import { useAuthStore } from '@/store/authStore';
 import {
   Music,
   Download,
@@ -36,7 +37,24 @@ export default function AudioDetailPage() {
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
   const [showShareOptions, setShowShareOptions] = useState(false);
 
+  const { user } = useAuthStore();
   const { data: audio, isLoading } = useAudio(audioId);
+  const updateAudio = useUpdateAudio();
+
+  const isOwner = user && audio && String(audio.userId) === String(user.id);
+
+  const handleTogglePublic = async () => {
+    if (!audio || !isOwner) return;
+
+    try {
+      await updateAudio.mutateAsync({
+        id: audioId,
+        data: { isPublic: !audio.isPublic }
+      });
+    } catch (error: any) {
+      alert(error?.response?.data?.message || 'Failed to update audio visibility');
+    }
+  };
 
   const getDownloadLink = () => {
     return `${API_URL}/d/${audio?.shareToken || audioId}`;
@@ -161,13 +179,24 @@ export default function AudioDetailPage() {
                   <Download className="mr-2 h-4 w-4" />
                   {audio.downloads || 0} downloads
                 </span>
-                <span className="flex items-center">
+                <span className="flex items-center gap-2">
                   {audio.isPublic ? (
-                    <Globe className="mr-2 h-4 w-4 text-green-500" />
+                    <Globe className="h-4 w-4 text-green-500" />
                   ) : (
-                    <Lock className="mr-2 h-4 w-4 text-yellow-500" />
+                    <Lock className="h-4 w-4 text-yellow-500" />
                   )}
-                  {audio.isPublic ? 'Public' : 'Private'}
+                  <span>{audio.isPublic ? 'Public' : 'Private'}</span>
+                  {isOwner && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleTogglePublic}
+                      disabled={updateAudio.isPending}
+                      className="ml-2 h-6 px-2 text-xs"
+                    >
+                      {updateAudio.isPending ? 'Updating...' : audio.isPublic ? 'Make Private' : 'Make Public'}
+                    </Button>
+                  )}
                 </span>
                 <span className="flex items-center">
                   <Calendar className="mr-2 h-4 w-4" />
