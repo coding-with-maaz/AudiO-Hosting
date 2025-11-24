@@ -2,10 +2,10 @@
 
 import { useState, useRef } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { useUploadAudio, useBulkUpload } from '@/hooks/useAudio';
+import { useUploadAudio, useBulkUpload, useCloneAudio } from '@/hooks/useAudio';
 import { useFolders } from '@/hooks/useFolders';
 import { Button } from '@/components/ui/Button';
-import { Upload, FileAudio, X } from 'lucide-react';
+import { Upload, FileAudio, X, Copy, Link as LinkIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function UploadPage() {
@@ -17,10 +17,14 @@ export default function UploadPage() {
   const [folderId, setFolderId] = useState<string>('');
   const [isPublic, setIsPublic] = useState(true);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [showCloneSection, setShowCloneSection] = useState(false);
+  const [cloneUrl, setCloneUrl] = useState('');
+  const [cloneFolderId, setCloneFolderId] = useState<string>('');
 
   const { data: foldersData } = useFolders();
   const uploadSingle = useUploadAudio();
   const uploadBulk = useBulkUpload();
+  const cloneAudio = useCloneAudio();
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -70,6 +74,38 @@ export default function UploadPage() {
     }
   };
 
+  const handleClone = async () => {
+    if (!cloneUrl.trim()) {
+      alert('Please enter an embed URL or audio ID');
+      return;
+    }
+
+    try {
+      // Extract audio ID from URL
+      let audioId = cloneUrl.trim();
+      
+      // If it's a full URL, extract the ID
+      if (audioId.includes('/e/')) {
+        audioId = audioId.split('/e/')[1].split('?')[0].split('#')[0];
+      } else if (audioId.includes('/audio/')) {
+        audioId = audioId.split('/audio/')[1].split('?')[0].split('#')[0];
+      }
+
+      await cloneAudio.mutateAsync({
+        id: audioId,
+        folderId: cloneFolderId || undefined,
+      });
+
+      // Reset form
+      setCloneUrl('');
+      setCloneFolderId('');
+      setShowCloneSection(false);
+      router.push('/my-audios');
+    } catch (error: any) {
+      alert(error?.response?.data?.message || 'Failed to clone audio. Make sure the audio is public and you have permission.');
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="mx-auto max-w-3xl space-y-6">
@@ -78,9 +114,80 @@ export default function UploadPage() {
             Upload Audio
           </h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Upload single or multiple audio files
+            Upload single or multiple audio files, or clone from other users
           </p>
         </div>
+
+        {/* Clone Section Toggle */}
+        <div className="flex gap-2">
+          <Button
+            variant={showCloneSection ? 'outline' : 'default'}
+            onClick={() => setShowCloneSection(!showCloneSection)}
+            className="w-full"
+          >
+            <Copy className="mr-2 h-4 w-4" />
+            {showCloneSection ? 'Hide Clone Option' : 'Clone Audio from URL'}
+          </Button>
+        </div>
+
+        {/* Clone Section */}
+        {showCloneSection && (
+          <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+            <h2 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
+              Clone Audio from Public Link
+            </h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Embed URL or Audio ID
+                </label>
+                <div className="mt-1 flex rounded-md shadow-sm">
+                  <span className="inline-flex items-center rounded-l-md border border-r-0 border-gray-300 bg-gray-50 px-3 text-gray-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-400">
+                    <LinkIcon className="h-5 w-5" />
+                  </span>
+                  <input
+                    type="text"
+                    value={cloneUrl}
+                    onChange={(e) => setCloneUrl(e.target.value)}
+                    placeholder="http://localhost:3000/e/61b52175-b7d5-429d-9ccf-546d13c173c7 or audio ID"
+                    className="block w-full flex-1 rounded-none rounded-r-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  />
+                </div>
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Enter the embed URL (e.g., /e/[id]) or audio ID to clone
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Save to Folder (Optional)
+                </label>
+                <select
+                  value={cloneFolderId}
+                  onChange={(e) => setCloneFolderId(e.target.value)}
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                >
+                  <option value="">Root (No Folder)</option>
+                  {foldersData?.folders?.map((folder: any) => (
+                    <option key={folder.id} value={folder.id}>
+                      {folder.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <Button
+                onClick={handleClone}
+                disabled={!cloneUrl.trim() || cloneAudio.isPending}
+                isLoading={cloneAudio.isPending}
+                className="w-full"
+              >
+                <Copy className="mr-2 h-4 w-4" />
+                Clone Audio
+              </Button>
+            </div>
+          </div>
+        )}
 
         <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
           {/* File Input */}

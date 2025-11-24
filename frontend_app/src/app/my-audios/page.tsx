@@ -5,7 +5,7 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useMyAudios, useDeleteAudio } from '@/hooks/useAudio';
 import { formatFileSize, formatDate } from '@/utils/format';
 import { Button } from '@/components/ui/Button';
-import { Music, Trash2, Edit, Download, Share2, MoreVertical } from 'lucide-react';
+import { Music, Trash2, Edit, Download, Share2, MoreVertical, Copy } from 'lucide-react';
 import Link from 'next/link';
 import { useConfirm } from '@/contexts/ConfirmContext';
 
@@ -79,9 +79,17 @@ export default function MyAudiosPage() {
               Manage your audio files
             </p>
           </div>
-          <Link href="/upload">
-            <Button>Upload Audio</Button>
-          </Link>
+          <div className="flex gap-2">
+            <Link href="/upload">
+              <Button>Upload Audio</Button>
+            </Link>
+            <Link href="/e/61b52175-b7d5-429d-9ccf-546d13c173c7" target="_blank">
+              <Button variant="outline">
+                <Copy className="mr-2 h-4 w-4" />
+                Clone Audio
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {selectedAudios.length > 0 && (
@@ -164,12 +172,25 @@ export default function MyAudiosPage() {
                         >
                           <Music className="h-5 w-5 text-gray-400" />
                           <div>
-                            <p className="font-medium text-gray-900 dark:text-white">
-                              {audio.title}
-                            </p>
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium text-gray-900 dark:text-white">
+                                {audio.title}
+                              </p>
+                              {audio.metadata?.clonedFrom && (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                                  <Copy className="h-3 w-3" />
+                                  Cloned
+                                </span>
+                              )}
+                            </div>
                             <p className="text-sm text-gray-500 dark:text-gray-400">
                               {audio.description || 'No description'}
                             </p>
+                            {audio.metadata?.clonedFrom && audio.metadata?.originalOwner && (
+                              <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+                                Cloned from: {audio.metadata?.originalOwner || 'Unknown'}
+                              </p>
+                            )}
                           </div>
                         </Link>
                       </td>
