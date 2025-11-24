@@ -510,6 +510,13 @@ exports.cloneAudio = async (req, res, next) => {
       ]
     });
 
+    console.log('Found audio:', originalAudio ? {
+      id: originalAudio.id,
+      userId: originalAudio.userId,
+      isPublic: originalAudio.isPublic,
+      title: originalAudio.title
+    } : 'Not found');
+
     if (!originalAudio) {
       return res.status(404).json({
         success: false,
@@ -519,6 +526,7 @@ exports.cloneAudio = async (req, res, next) => {
 
     // Check if audio is public
     if (!originalAudio.isPublic) {
+      console.log('Audio is not public');
       return res.status(403).json({
         success: false,
         message: 'This audio is not public and cannot be cloned'
@@ -526,7 +534,12 @@ exports.cloneAudio = async (req, res, next) => {
     }
 
     // Check if user is trying to clone their own audio
-    if (String(originalAudio.userId) === String(req.user.id)) {
+    const audioUserId = String(originalAudio.userId);
+    const currentUserId = String(req.user.id);
+    console.log('Comparing user IDs:', { audioUserId, currentUserId, match: audioUserId === currentUserId });
+    
+    if (audioUserId === currentUserId) {
+      console.log('User trying to clone own audio');
       return res.status(400).json({
         success: false,
         message: 'You cannot clone your own audio'
@@ -542,9 +555,17 @@ exports.cloneAudio = async (req, res, next) => {
     }
 
     const user = await db.User.findByPk(req.user.id);
+    
+    console.log('User storage check:', {
+      storageUsed: user.storageUsed,
+      fileSize: originalAudio.fileSize,
+      storageLimit: user.storageLimit,
+      total: user.storageUsed + originalAudio.fileSize
+    });
 
     // Check storage limit
     if (user.storageUsed + originalAudio.fileSize > user.storageLimit) {
+      console.log('Storage limit exceeded');
       return res.status(400).json({
         success: false,
         message: 'Storage limit exceeded'
