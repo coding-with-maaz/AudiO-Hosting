@@ -2,9 +2,13 @@
 
 import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Music } from 'lucide-react';
+import { Music, Copy, Check } from 'lucide-react';
 import axios from 'axios';
 import { AudioPlayer } from '@/components/audio/AudioPlayer';
+import { useCloneAudio } from '@/hooks/useAudio';
+import { useFolders } from '@/hooks/useFolders';
+import { useAuthStore } from '@/store/authStore';
+import { Button } from '@/components/ui/Button';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -14,6 +18,13 @@ export default function EmbedAudioPage() {
   const [audio, setAudio] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showCloneModal, setShowCloneModal] = useState(false);
+  const [selectedFolderId, setSelectedFolderId] = useState<string>('');
+  const [cloned, setCloned] = useState(false);
+
+  const { user } = useAuthStore();
+  const cloneAudio = useCloneAudio();
+  const { data: foldersData } = useFolders();
 
   // Get customization options from URL params
   const [shareOptions, setShareOptions] = useState({
@@ -84,6 +95,40 @@ export default function EmbedAudioPage() {
     return `${API_URL}/d/${audio?.shareToken || audio?.id || audioId}`;
   };
 
+  const handleClone = async () => {
+    if (!user) {
+      alert('Please login to clone this audio to your account');
+      return;
+    }
+
+    if (!audio) return;
+
+    // Check if user is trying to clone their own audio
+    if (audio.userId === user.id) {
+      alert('This is your own audio. You cannot clone it.');
+      return;
+    }
+
+    setShowCloneModal(true);
+  };
+
+  const confirmClone = async () => {
+    if (!audio) return;
+
+    try {
+      await cloneAudio.mutateAsync({
+        id: audio.id,
+        folderId: selectedFolderId || undefined,
+      });
+      setShowCloneModal(false);
+      setSelectedFolderId('');
+      setCloned(true);
+      setTimeout(() => setCloned(false), 3000);
+    } catch (error: any) {
+      alert(error?.response?.data?.message || 'Failed to clone audio');
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-900">
@@ -114,6 +159,29 @@ export default function EmbedAudioPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-4">
       <div className="w-full max-w-4xl">
+        {/* Clone Button */}
+        {user && audio && audio.userId !== user.id && (
+          <div className="mb-4 flex justify-end">
+            <Button
+              onClick={handleClone}
+              disabled={cloneAudio.isPending || cloned}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              {cloned ? (
+                <>
+                  <Check className="mr-2 h-4 w-4" />
+                  Cloned!
+                </>
+              ) : (
+                <>
+                  <Copy className="mr-2 h-4 w-4" />
+                  Clone to My Account
+                </>
+              )}
+            </Button>
+          </div>
+        )}
+
         {/* Custom Audio Player */}
         <AudioPlayer
           src={getDirectLink()}
@@ -132,6 +200,64 @@ export default function EmbedAudioPage() {
           Powered by Audio Hosting Platform
         </div>
       </div>
+
+      {/* Clone Modal */}
+      {showCloneModal && audio && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800">
+            <h2 className="mb-4 text-xl font-bold text-gray-900 dark:text-white">
+              Clone Audio
+            </h2>
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <span className="font-medium">Title:</span> {audio.title}
+                </p>
+                <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                  <span className="font-medium">Owner:</span> {audio.user?.username || 'Unknown'}
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Save to Folder (Optional)
+                </label>
+                <select
+                  value={selectedFolderId}
+                  onChange={(e) => setSelectedFolderId(e.target.value)}
+                  className="mt-1 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                >
+                  <option value="">Root (No Folder)</option>
+                  {foldersData?.folders?.map((folder: any) => (
+                    <option key={folder.id} value={folder.id}>
+                      {folder.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex space-x-2">
+                <Button
+                  onClick={confirmClone}
+                  disabled={cloneAudio.isPending}
+                  isLoading={cloneAudio.isPending}
+                  className="flex-1"
+                >
+                  <Copy className="mr-2 h-4 w-4" />
+                  Clone Audio
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowCloneModal(false);
+                    setSelectedFolderId('');
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
