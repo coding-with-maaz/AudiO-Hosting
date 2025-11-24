@@ -237,7 +237,7 @@ exports.updateAudio = async (req, res, next) => {
       }
     }
 
-    const updateData: any = {
+    const updateData = {
       title: title || audio.title,
       description: description !== undefined ? description : audio.description,
       isPublic: isPublic !== undefined ? isPublic === 'true' : audio.isPublic,
