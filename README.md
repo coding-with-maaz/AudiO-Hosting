@@ -1,4 +1,4 @@
-# Audio Hosting Platform
+# AUDioHub
 
 A comprehensive audio hosting platform similar to Doodstream, built with Node.js backend and Next.js frontend.
 

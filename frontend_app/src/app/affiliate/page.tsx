@@ -258,7 +258,7 @@ export default function AffiliatePage() {
                     onClick={() => {
                       if (navigator.share) {
                         navigator.share({
-                          title: 'Join Audio Hosting Platform',
+                          title: 'Join AUDioHub',
                           text: 'Check out this amazing audio hosting platform!',
                           url: getAffiliateLink(),
                         });

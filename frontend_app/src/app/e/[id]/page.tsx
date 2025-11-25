@@ -204,7 +204,7 @@ export default function EmbedAudioPage() {
 
         {/* Footer */}
         <div className="mt-6 text-center text-gray-400 text-sm">
-          Powered by Audio Hosting Platform
+          Powered by AUDioHub
         </div>
       </div>
 

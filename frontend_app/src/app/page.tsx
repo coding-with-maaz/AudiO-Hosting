@@ -67,7 +67,7 @@ export default function Home() {
                 <Music className="h-6 w-6 text-white" />
               </div>
               <span className="text-xl font-bold text-gray-900 dark:text-white">
-                AudioHost
+                AUDioHub
               </span>
             </div>
             <div className="flex items-center space-x-4">
@@ -160,10 +160,10 @@ export default function Home() {
           <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
             <div>
               <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl dark:text-white">
-                Why choose AudioHost?
+                Why choose AUDioHub?
               </h2>
               <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">
-                Join thousands of creators and businesses who trust AudioHost for their audio hosting needs.
+                Join thousands of creators and businesses who trust AUDioHub for their audio hosting needs.
               </p>
               <div className="mt-8 space-y-4">
                 {benefits.map((benefit, index) => (
@@ -223,7 +223,7 @@ export default function Home() {
                 Ready to get started?
               </h2>
               <p className="mx-auto mt-4 max-w-xl text-lg text-blue-100">
-                Join thousands of users who are already hosting their audio files with AudioHost.
+                Join thousands of users who are already hosting their audio files with AUDioHub.
                 Start your free trial today.
               </p>
               <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
@@ -257,7 +257,7 @@ export default function Home() {
                   <Music className="h-5 w-5 text-white" />
                 </div>
                 <span className="text-lg font-bold text-gray-900 dark:text-white">
-                  AudioHost
+                  AUDioHub
                 </span>
               </div>
               <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
@@ -327,7 +327,7 @@ export default function Home() {
           </div>
           <div className="mt-8 border-t border-gray-200 pt-8 dark:border-gray-700">
             <p className="text-center text-sm text-gray-600 dark:text-gray-400">
-              © {new Date().getFullYear()} AudioHost. All rights reserved.
+              © {new Date().getFullYear()} AUDioHub. All rights reserved.
             </p>
           </div>
         </div>

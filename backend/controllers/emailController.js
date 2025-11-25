@@ -43,7 +43,7 @@ exports.sendVerificationEmail = async (userId) => {
     const template = emailTemplates.verification(user, otpPin);
 
     await transporter.sendMail({
-      from: process.env.MAIL_FROM_ADDRESS || process.env.SMTP_FROM || 'noreply@audiohosting.com',
+      from: process.env.MAIL_FROM_ADDRESS || process.env.SMTP_FROM || 'noreply@audiohub.com',
       to: user.email,
       subject: template.subject,
       html: template.html,
@@ -178,7 +178,7 @@ exports.sendPasswordResetEmail = async (email) => {
     const template = emailTemplates.passwordReset(user, token);
 
     await transporter.sendMail({
-      from: process.env.SMTP_FROM || 'noreply@audiohosting.com',
+      from: process.env.SMTP_FROM || 'noreply@audiohub.com',
       to: user.email,
       subject: template.subject,
       html: template.html,

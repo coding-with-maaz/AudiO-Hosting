@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Audio Hosting Platform",
+  title: "AUDioHub",
   description: "Upload, manage, and share your audio files",
 };
 

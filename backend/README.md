@@ -1,4 +1,4 @@
-# Audio Hosting Platform Backend
+# AUDioHub Backend
 
 A comprehensive Node.js backend for an audio hosting platform with affiliate marketing, pricing plans, and analytics features - similar to Doodstream.
 
@@ -51,7 +51,7 @@ A comprehensive Node.js backend for an audio hosting platform with affiliate mar
 1. **Clone the repository**
 ```bash
 git clone <repository-url>
-cd VIDEO_HOSTING
+cd AUDioHub
 ```
 
 2. **Install dependencies**

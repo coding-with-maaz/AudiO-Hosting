@@ -87,7 +87,7 @@ if (config.nodeEnv === 'development') {
 app.get('/', (req, res) => {
   res.json({
     success: true,
-    message: 'Audio Hosting Platform API',
+    message: 'AUDioHub API',
     version: '1.0.0',
     endpoints: {
       auth: '/api/auth',

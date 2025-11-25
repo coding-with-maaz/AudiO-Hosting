@@ -1,7 +1,7 @@
 {
-  "name": "audio-hosting-platform",
+  "name": "audiohub-backend",
   "version": "1.0.0",
-  "description": "Backend for audio hosting platform with affiliate marketing and pricing plans",
+  "description": "Backend for AUDioHub with affiliate marketing and pricing plans",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

@@ -1,6 +1,6 @@
-# Audio Hosting Platform - Frontend
+# AUDioHub - Frontend
 
-This is the Next.js frontend application for the Audio Hosting Platform.
+This is the Next.js frontend application for AUDioHub.
 
 ## 🚀 Getting Started
 

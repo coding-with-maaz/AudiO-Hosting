@@ -7,7 +7,7 @@ const templates = {
     subject: 'Verify Your Email Address - OTP Code',
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-        <h2 style="color: #333;">Welcome to Audio Hosting Platform!</h2>
+        <h2 style="color: #333;">Welcome to AUDioHub!</h2>
         <p>Hi ${user.username},</p>
         <p>Please verify your email address using the OTP code below:</p>
         <div style="background-color: #f5f5f5; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px;">
@@ -18,7 +18,7 @@ const templates = {
         <p style="color: #666; font-size: 12px; margin-top: 30px;">If you didn't create an account, please ignore this email.</p>
       </div>
     `,
-    text: `Welcome to Audio Hosting Platform!\n\nHi ${user.username},\n\nPlease verify your email address using this OTP code: ${otpPin}\n\nThis code will expire in 10 minutes.\n\nIf you didn't create an account, please ignore this email.`
+    text: `Welcome to AUDioHub!\n\nHi ${user.username},\n\nPlease verify your email address using this OTP code: ${otpPin}\n\nThis code will expire in 10 minutes.\n\nIf you didn't create an account, please ignore this email.`
   }),
 
   passwordReset: (user, token) => ({
@@ -41,7 +41,7 @@ const templates = {
   }),
 
   welcome: (user) => ({
-    subject: 'Welcome to Audio Hosting Platform!',
+    subject: 'Welcome to AUDioHub!',
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2>Welcome ${user.username}!</h2>
