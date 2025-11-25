@@ -33,6 +33,7 @@ export default function EmbedAudioPage() {
     hideCover: false,
     autoPlay: false,
     isCompact: false,
+    transparent: false,
   });
 
   useEffect(() => {
@@ -44,6 +45,7 @@ export default function EmbedAudioPage() {
         hideCover: urlParams.get('hideCover') === 'true',
         autoPlay: urlParams.get('autoplay') === 'true',
         isCompact: urlParams.get('compact') === 'true',
+        transparent: urlParams.get('transparent') === 'true',
       });
     }
   }, []);
@@ -164,7 +166,11 @@ export default function EmbedAudioPage() {
   const canClone = audio && !isOwnAudio;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-4">
+    <div className={`min-h-screen flex items-center justify-center p-4 ${
+      shareOptions.transparent 
+        ? 'bg-transparent' 
+        : 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900'
+    }`}>
       <div className="w-full max-w-4xl">
         {/* Clone Button - Show if audio exists and user doesn't own it */}
         {canClone && (
@@ -199,13 +205,16 @@ export default function EmbedAudioPage() {
           showDownload={true}
           showShare={true}
           showFullscreen={true}
+          transparent={shareOptions.transparent}
           className={`w-full ${shareOptions.isCompact ? 'max-w-2xl' : ''}`}
         />
 
-        {/* Footer */}
-        <div className="mt-6 text-center text-gray-400 text-sm">
-          Powered by AUDioHub
-        </div>
+        {/* Footer - Hide if transparent */}
+        {!shareOptions.transparent && (
+          <div className="mt-6 text-center text-gray-400 text-sm">
+            Powered by AUDioHub
+          </div>
+        )}
       </div>
 
       {/* Clone Modal */}

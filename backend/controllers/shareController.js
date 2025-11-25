@@ -65,6 +65,9 @@ exports.getDirectLink = async (req, res, next) => {
     }
 
     const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
+    const embedUrl = `${frontendUrl}/e/${audio.shareToken}`;
+    const embedUrlTransparent = `${frontendUrl}/e/${audio.shareToken}?transparent=true`;
 
     res.json({
       success: true,
@@ -77,8 +80,16 @@ exports.getDirectLink = async (req, res, next) => {
         },
         links: {
           directDownload: `${baseUrl}/d/${audio.shareToken}`,
-          embed: `${baseUrl}/e/${audio.shareToken}`,
-          embedCode: `<iframe src="${baseUrl}/e/${audio.shareToken}" width="100%" height="100" frameborder="0" allow="autoplay"></iframe>`
+          embed: embedUrl,
+          embedTransparent: embedUrlTransparent,
+          embedCodes: {
+            standard: `<iframe src="${embedUrl}" width="100%" height="400" frameborder="0" allow="autoplay" style="border-radius: 12px;"></iframe>`,
+            transparent: `<iframe src="${embedUrlTransparent}" width="100%" height="400" frameborder="0" allow="autoplay" style="background: transparent; border: none;"></iframe>`,
+            minimal: `<iframe src="${embedUrl}?compact=true" width="100%" height="120" frameborder="0" allow="autoplay" style="border-radius: 8px;"></iframe>`,
+            compactTransparent: `<iframe src="${embedUrlTransparent}&compact=true" width="100%" height="120" frameborder="0" allow="autoplay" style="background: transparent; border: none;"></iframe>`,
+            autoPlay: `<iframe src="${embedUrl}?autoplay=true" width="100%" height="400" frameborder="0" allow="autoplay" style="border-radius: 12px;"></iframe>`,
+            autoPlayTransparent: `<iframe src="${embedUrlTransparent}&autoplay=true" width="100%" height="400" frameborder="0" allow="autoplay" style="background: transparent; border: none;"></iframe>`
+          }
         }
       }
     });

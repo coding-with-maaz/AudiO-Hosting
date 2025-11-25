@@ -27,6 +27,7 @@ interface AudioPlayerProps {
   showDownload?: boolean;
   showShare?: boolean;
   showFullscreen?: boolean;
+  transparent?: boolean;
   className?: string;
 }
 
@@ -39,6 +40,7 @@ export function AudioPlayer({
   showDownload = true,
   showShare = true,
   showFullscreen = true,
+  transparent = false,
   className = '',
 }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -250,9 +252,19 @@ export function AudioPlayer({
     };
   }, [src]);
 
+  const bgClass = transparent 
+    ? 'bg-transparent backdrop-blur-sm' 
+    : 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900';
+  
+  const textColorClass = transparent ? 'text-gray-900 dark:text-white' : 'text-white';
+  const textSecondaryClass = transparent ? 'text-gray-700 dark:text-gray-300' : 'text-gray-300';
+  const textTertiaryClass = transparent ? 'text-gray-600 dark:text-gray-400' : 'text-gray-400';
+  const bgControlClass = transparent ? 'bg-white/80 dark:bg-gray-800/80' : 'bg-gray-700';
+  const bgProgressClass = transparent ? 'bg-gray-300 dark:bg-gray-600' : 'bg-gray-700';
+
   return (
     <div
-      className={`bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-xl shadow-2xl overflow-hidden ${className}`}
+      className={`${bgClass} rounded-xl ${transparent ? '' : 'shadow-2xl'} overflow-hidden ${className}`}
     >
       <audio 
         ref={audioRef} 
@@ -273,16 +285,16 @@ export function AudioPlayer({
       
       {/* Cover Image */}
       {coverImage && (
-        <div className="relative h-64 bg-gray-700 overflow-hidden">
+        <div className={`relative h-64 ${transparent ? 'bg-white/20 dark:bg-gray-800/20' : 'bg-gray-700'} overflow-hidden rounded-t-xl`}>
           <img
             src={coverImage}
             alt={title}
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent" />
+          <div className={`absolute inset-0 ${transparent ? 'bg-gradient-to-t from-white/60 dark:from-gray-900/60 to-transparent' : 'bg-gradient-to-t from-gray-900/80 to-transparent'}`} />
           <div className="absolute bottom-4 left-4 right-4">
-            <h3 className="text-2xl font-bold text-white mb-1">{title}</h3>
-            {artist && <p className="text-gray-300">{artist}</p>}
+            <h3 className={`text-2xl font-bold ${textColorClass} mb-1`}>{title}</h3>
+            {artist && <p className={textSecondaryClass}>{artist}</p>}
           </div>
         </div>
       )}
@@ -301,8 +313,8 @@ export function AudioPlayer({
         {/* Title (if no cover) */}
         {!coverImage && (
           <div className="mb-4 text-center">
-            <h3 className="text-xl font-bold text-white mb-1">{title}</h3>
-            {artist && <p className="text-gray-400">{artist}</p>}
+            <h3 className={`text-xl font-bold ${textColorClass} mb-1`}>{title}</h3>
+            {artist && <p className={textTertiaryClass}>{artist}</p>}
           </div>
         )}
 
@@ -310,7 +322,7 @@ export function AudioPlayer({
         <div className="mb-4">
           <div
             ref={progressRef}
-            className="relative h-2 bg-gray-700 rounded-full cursor-pointer group"
+            className={`relative h-2 ${bgProgressClass} rounded-full cursor-pointer group`}
             onClick={handleProgressClick}
             onMouseMove={handleProgressDrag}
             onMouseDown={() => setIsDragging(true)}
@@ -322,11 +334,11 @@ export function AudioPlayer({
               style={{ width: `${progressPercent}%` }}
             />
             <div
-              className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+              className={`absolute top-1/2 -translate-y-1/2 w-4 h-4 ${transparent ? 'bg-gray-900 dark:bg-white' : 'bg-white'} rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity`}
               style={{ left: `calc(${progressPercent}% - 8px)` }}
             />
           </div>
-          <div className="flex justify-between text-xs text-gray-400 mt-1">
+          <div className={`flex justify-between text-xs ${textTertiaryClass} mt-1`}>
             <span>{formatDuration(currentTime)}</span>
             <span>{formatDuration(duration)}</span>
           </div>
@@ -337,7 +349,11 @@ export function AudioPlayer({
           <button
             onClick={() => setShuffle(!shuffle)}
             className={`p-2 rounded-full transition-colors ${
-              shuffle ? 'text-blue-400 bg-blue-400/20' : 'text-gray-400 hover:text-white'
+              shuffle 
+                ? 'text-blue-400 bg-blue-400/20' 
+                : transparent 
+                  ? 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white' 
+                  : 'text-gray-400 hover:text-white'
             }`}
             title="Shuffle"
           >
@@ -346,7 +362,11 @@ export function AudioPlayer({
 
           <button
             onClick={() => seek(-10)}
-            className="p-2 text-gray-400 hover:text-white transition-colors"
+            className={`p-2 transition-colors ${
+              transparent 
+                ? 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white' 
+                : 'text-gray-400 hover:text-white'
+            }`}
             title="Rewind 10s"
           >
             <SkipBack className="h-6 w-6" />
@@ -365,7 +385,11 @@ export function AudioPlayer({
 
           <button
             onClick={() => seek(10)}
-            className="p-2 text-gray-400 hover:text-white transition-colors"
+            className={`p-2 transition-colors ${
+              transparent 
+                ? 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white' 
+                : 'text-gray-400 hover:text-white'
+            }`}
             title="Forward 10s"
           >
             <SkipForward className="h-6 w-6" />
@@ -374,7 +398,11 @@ export function AudioPlayer({
           <button
             onClick={() => setRepeat(repeat === 'off' ? 'all' : repeat === 'all' ? 'one' : 'off')}
             className={`p-2 rounded-full transition-colors ${
-              repeat !== 'off' ? 'text-blue-400 bg-blue-400/20' : 'text-gray-400 hover:text-white'
+              repeat !== 'off' 
+                ? 'text-blue-400 bg-blue-400/20' 
+                : transparent 
+                  ? 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white' 
+                  : 'text-gray-400 hover:text-white'
             }`}
             title={`Repeat: ${repeat}`}
           >
@@ -388,7 +416,11 @@ export function AudioPlayer({
           <div className="flex items-center gap-2 flex-1">
             <button
               onClick={toggleMute}
-              className="p-2 text-gray-400 hover:text-white transition-colors"
+              className={`p-2 transition-colors ${
+                transparent 
+                  ? 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white' 
+                  : 'text-gray-400 hover:text-white'
+              }`}
               title={isMuted ? 'Unmute' : 'Mute'}
             >
               {isMuted || volume === 0 ? (
@@ -404,9 +436,9 @@ export function AudioPlayer({
               step="0.01"
               value={isMuted ? 0 : volume}
               onChange={handleVolumeChange}
-              className="flex-1 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
+              className={`flex-1 h-1 ${bgProgressClass} rounded-lg appearance-none cursor-pointer accent-blue-500`}
             />
-            <span className="text-xs text-gray-400 w-8">{Math.round(volume * 100)}%</span>
+            <span className={`text-xs ${textTertiaryClass} w-8`}>{Math.round(volume * 100)}%</span>
           </div>
 
           {/* Settings & Actions */}
@@ -414,7 +446,11 @@ export function AudioPlayer({
             {showDownload && (
               <button
                 onClick={handleDownload}
-                className="p-2 text-gray-400 hover:text-white transition-colors"
+                className={`p-2 transition-colors ${
+                  transparent 
+                    ? 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white' 
+                    : 'text-gray-400 hover:text-white'
+                }`}
                 title="Download"
               >
                 <Download className="h-5 w-5" />
@@ -424,7 +460,11 @@ export function AudioPlayer({
             {showShare && (
               <button
                 onClick={handleShare}
-                className="p-2 text-gray-400 hover:text-white transition-colors"
+                className={`p-2 transition-colors ${
+                  transparent 
+                    ? 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white' 
+                    : 'text-gray-400 hover:text-white'
+                }`}
                 title="Share"
               >
                 <Share2 className="h-5 w-5" />
@@ -435,19 +475,23 @@ export function AudioPlayer({
             <div className="relative">
               <button
                 onClick={() => setShowSettings(!showSettings)}
-                className="p-2 text-gray-400 hover:text-white transition-colors"
+                className={`p-2 transition-colors ${
+                  transparent 
+                    ? 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white' 
+                    : 'text-gray-400 hover:text-white'
+                }`}
                 title="Settings"
               >
                 <Settings className="h-5 w-5" />
               </button>
               {showSettings && (
-                <div className="absolute bottom-full right-0 mb-2 bg-gray-800 rounded-lg shadow-xl p-3 min-w-[200px] z-10">
+                <div className={`absolute bottom-full right-0 mb-2 ${transparent ? 'bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm' : 'bg-gray-800'} rounded-lg shadow-xl p-3 min-w-[200px] z-10`}>
                   <div className="mb-3">
-                    <label className="block text-xs text-gray-400 mb-2">Playback Speed</label>
+                    <label className={`block text-xs ${textTertiaryClass} mb-2`}>Playback Speed</label>
                     <select
                       value={playbackRate}
                       onChange={(e) => setPlaybackRate(parseFloat(e.target.value))}
-                      className="w-full bg-gray-700 text-white rounded px-2 py-1 text-sm"
+                      className={`w-full ${bgControlClass} ${textColorClass} rounded px-2 py-1 text-sm`}
                     >
                       <option value="0.5">0.5x</option>
                       <option value="0.75">0.75x</option>
@@ -457,7 +501,7 @@ export function AudioPlayer({
                       <option value="2">2x</option>
                     </select>
                   </div>
-                  <div className="text-xs text-gray-400">
+                  <div className={`text-xs ${textTertiaryClass}`}>
                     <p className="mb-1">Keyboard Shortcuts:</p>
                     <p>Space: Play/Pause</p>
                     <p>← →: Seek</p>
@@ -471,7 +515,11 @@ export function AudioPlayer({
             {showFullscreen && (
               <button
                 onClick={toggleFullscreen}
-                className="p-2 text-gray-400 hover:text-white transition-colors"
+                className={`p-2 transition-colors ${
+                  transparent 
+                    ? 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white' 
+                    : 'text-gray-400 hover:text-white'
+                }`}
                 title="Fullscreen"
               >
                 {isFullscreen ? (

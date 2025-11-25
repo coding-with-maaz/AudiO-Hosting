@@ -17,6 +17,7 @@ export function ShareOptions({ embedUrl, audioTitle, audioArtist, hasCoverImage 
   const [showCover, setShowCover] = useState(true);
   const [autoPlay, setAutoPlay] = useState(false);
   const [playerSize, setPlayerSize] = useState<'compact' | 'full'>('full');
+  const [transparent, setTransparent] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const buildEmbedUrl = () => {
@@ -26,13 +27,17 @@ export function ShareOptions({ embedUrl, audioTitle, audioArtist, hasCoverImage 
     if (!showCover) params.set('hideCover', 'true');
     if (autoPlay) params.set('autoplay', 'true');
     if (playerSize === 'compact') params.set('compact', 'true');
+    if (transparent) params.set('transparent', 'true');
     
     return `${embedUrl}${params.toString() ? '?' + params.toString() : ''}`;
   };
 
   const getEmbedCode = () => {
     const height = playerSize === 'compact' ? '300' : '500';
-    return `<iframe src="${buildEmbedUrl()}" width="100%" height="${height}" frameborder="0" allow="autoplay; fullscreen" style="border-radius: 12px;"></iframe>`;
+    const style = transparent 
+      ? 'background: transparent; border: none;' 
+      : 'border-radius: 12px;';
+    return `<iframe src="${buildEmbedUrl()}" width="100%" height="${height}" frameborder="0" allow="autoplay; fullscreen" style="${style}"></iframe>`;
   };
 
   const copyToClipboard = async (text: string) => {
@@ -216,6 +221,35 @@ export function ShareOptions({ embedUrl, audioTitle, audioArtist, hasCoverImage 
                 Full
               </button>
             </div>
+          </div>
+
+          {/* Transparent Background */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-5 w-5 flex items-center justify-center">
+                <div className={`h-4 w-4 rounded border-2 ${transparent ? 'border-blue-500 bg-blue-500/20' : 'border-gray-300 dark:border-gray-600'}`} />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Transparent Background
+                </label>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Use transparent background for seamless embedding
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setTransparent(!transparent)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                transparent ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  transparent ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
           </div>
         </div>
       </div>
