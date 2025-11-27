@@ -1,19 +1,20 @@
 require('dotenv').config();
+const constants = require('../constants');
 
 module.exports = {
   development: {
     username: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'audio_hosting_db',
+    database: process.env.DB_NAME || constants.DATABASE.DEFAULT_NAME,
     host: process.env.DB_HOST || 'localhost',
     port: process.env.DB_PORT || 3306,
     dialect: 'mysql',
     logging: console.log,
     pool: {
-      max: 5,
-      min: 0,
-      acquire: 30000,
-      idle: 10000
+      max: constants.DATABASE.POOL.MAX,
+      min: constants.DATABASE.POOL.MIN,
+      acquire: constants.DATABASE.POOL.ACQUIRE,
+      idle: constants.DATABASE.POOL.IDLE
     }
   },
   test: {
@@ -36,8 +37,8 @@ module.exports = {
     pool: {
       max: 10,
       min: 2,
-      acquire: 30000,
-      idle: 10000
+      acquire: constants.DATABASE.POOL.ACQUIRE,
+      idle: constants.DATABASE.POOL.IDLE
     }
   }
 };

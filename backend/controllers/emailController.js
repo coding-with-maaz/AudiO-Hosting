@@ -2,6 +2,7 @@ const db = require('../models');
 const crypto = require('crypto');
 const transporter = require('../config/email');
 const emailTemplates = require('../utils/emailTemplates');
+const constants = require('../constants');
 
 exports.sendVerificationEmail = async (userId) => {
   try {
@@ -43,7 +44,7 @@ exports.sendVerificationEmail = async (userId) => {
     const template = emailTemplates.verification(user, otpPin);
 
     await transporter.sendMail({
-      from: process.env.MAIL_FROM_ADDRESS || process.env.SMTP_FROM || 'noreply@audiohub.com',
+      from: process.env.MAIL_FROM_ADDRESS || process.env.SMTP_FROM || constants.EMAIL.DEFAULT_FROM,
       to: user.email,
       subject: template.subject,
       html: template.html,

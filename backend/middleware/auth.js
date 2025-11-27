@@ -2,11 +2,12 @@ const jwt = require('jsonwebtoken');
 const config = require('../config/config');
 const db = require('../models');
 const apiKeyAuth = require('./apiKeyAuth');
+const constants = require('../constants');
 
 const authenticate = async (req, res, next) => {
   try {
     // Check if API key is provided
-    const apiKey = req.headers['x-api-key'] || req.query.api_key;
+    const apiKey = req.headers[constants.HTTP_HEADERS.X_API_KEY] || req.query[constants.QUERY_PARAMS.API_KEY];
     
     if (apiKey) {
       // Use API key authentication
@@ -14,12 +15,13 @@ const authenticate = async (req, res, next) => {
     }
 
     // Otherwise, use JWT authentication
-    const token = req.headers.authorization?.split(' ')[1] || req.cookies?.token;
+    const authHeader = req.headers[constants.HTTP_HEADERS.AUTHORIZATION];
+    const token = authHeader?.split(' ')[1] || req.cookies?.token;
 
     if (!token) {
-      return res.status(401).json({
-        success: false,
-        message: 'Authentication required'
+      return res.status(constants.HTTP_STATUS.UNAUTHORIZED).json({
+        [constants.RESPONSE_KEYS.SUCCESS]: false,
+        [constants.RESPONSE_KEYS.MESSAGE]: constants.MESSAGES.AUTH_REQUIRED
       });
     }
 
@@ -27,31 +29,31 @@ const authenticate = async (req, res, next) => {
     const user = await db.User.findByPk(decoded.userId);
 
     if (!user || !user.isActive) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid or inactive user'
+      return res.status(constants.HTTP_STATUS.UNAUTHORIZED).json({
+        [constants.RESPONSE_KEYS.SUCCESS]: false,
+        [constants.RESPONSE_KEYS.MESSAGE]: constants.MESSAGES.INVALID_USER
       });
     }
 
     req.user = user;
     next();
   } catch (error) {
-    if (error.name === 'JsonWebTokenError') {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid token'
+    if (error.name === constants.JWT_ERRORS.JSON_WEB_TOKEN_ERROR) {
+      return res.status(constants.HTTP_STATUS.UNAUTHORIZED).json({
+        [constants.RESPONSE_KEYS.SUCCESS]: false,
+        [constants.RESPONSE_KEYS.MESSAGE]: constants.MESSAGES.INVALID_TOKEN
       });
     }
-    if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({
-        success: false,
-        message: 'Token expired'
+    if (error.name === constants.JWT_ERRORS.TOKEN_EXPIRED_ERROR) {
+      return res.status(constants.HTTP_STATUS.UNAUTHORIZED).json({
+        [constants.RESPONSE_KEYS.SUCCESS]: false,
+        [constants.RESPONSE_KEYS.MESSAGE]: constants.MESSAGES.TOKEN_EXPIRED
       });
     }
-    return res.status(500).json({
-      success: false,
-      message: 'Authentication error',
-      error: error.message
+    return res.status(constants.HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+      [constants.RESPONSE_KEYS.SUCCESS]: false,
+      [constants.RESPONSE_KEYS.MESSAGE]: constants.MESSAGES.AUTH_REQUIRED,
+      [constants.RESPONSE_KEYS.ERROR]: error.message
     });
   }
 };
@@ -59,7 +61,8 @@ const authenticate = async (req, res, next) => {
 // Optional authentication - sets req.user if token exists, but doesn't fail if not
 const optionalAuthenticate = async (req, res, next) => {
   try {
-    const token = req.headers.authorization?.split(' ')[1] || req.cookies?.token;
+    const authHeader = req.headers[constants.HTTP_HEADERS.AUTHORIZATION];
+    const token = authHeader?.split(' ')[1] || req.cookies?.token;
 
     if (token) {
       try {
@@ -84,16 +87,16 @@ const optionalAuthenticate = async (req, res, next) => {
 const authorize = (...roles) => {
   return (req, res, next) => {
     if (!req.user) {
-      return res.status(401).json({
-        success: false,
-        message: 'Authentication required'
+      return res.status(constants.HTTP_STATUS.UNAUTHORIZED).json({
+        [constants.RESPONSE_KEYS.SUCCESS]: false,
+        [constants.RESPONSE_KEYS.MESSAGE]: constants.MESSAGES.AUTH_REQUIRED
       });
     }
 
     if (!roles.includes(req.user.role)) {
-      return res.status(403).json({
-        success: false,
-        message: 'Insufficient permissions'
+      return res.status(constants.HTTP_STATUS.FORBIDDEN).json({
+        [constants.RESPONSE_KEYS.SUCCESS]: false,
+        [constants.RESPONSE_KEYS.MESSAGE]: constants.MESSAGES.INSUFFICIENT_PERMISSIONS
       });
     }
 

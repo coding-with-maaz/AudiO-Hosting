@@ -1,3 +1,5 @@
+const constants = require('../constants');
+
 const errorHandler = (err, req, res, next) => {
   let error = { ...err };
   error.message = err.message;
@@ -6,41 +8,41 @@ const errorHandler = (err, req, res, next) => {
   console.error(err);
 
   // Sequelize validation error
-  if (err.name === 'SequelizeValidationError') {
+  if (err.name === constants.SEQUELIZE_ERRORS.VALIDATION_ERROR) {
     const message = Object.values(err.errors).map(e => e.message).join(', ');
     error = {
       message,
-      statusCode: 400
+      statusCode: constants.HTTP_STATUS.BAD_REQUEST
     };
   }
 
   // Sequelize unique constraint error
-  if (err.name === 'SequelizeUniqueConstraintError') {
-    const message = 'Duplicate field value entered';
+  if (err.name === constants.SEQUELIZE_ERRORS.UNIQUE_CONSTRAINT) {
+    const message = constants.MESSAGES.DUPLICATE_FIELD;
     error = {
       message,
-      statusCode: 400
+      statusCode: constants.HTTP_STATUS.BAD_REQUEST
     };
   }
 
   // Sequelize foreign key constraint error
-  if (err.name === 'SequelizeForeignKeyConstraintError') {
-    const message = 'Resource not found';
+  if (err.name === constants.SEQUELIZE_ERRORS.FOREIGN_KEY_CONSTRAINT) {
+    const message = constants.MESSAGES.NOT_FOUND;
     error = {
       message,
-      statusCode: 404
+      statusCode: constants.HTTP_STATUS.NOT_FOUND
     };
   }
 
-  const statusCode = error.statusCode || 500;
-  const message = error.message || err.message || 'Server Error';
+  const statusCode = error.statusCode || constants.HTTP_STATUS.INTERNAL_SERVER_ERROR;
+  const message = error.message || err.message || constants.MESSAGES.SERVER_ERROR;
   
   res.status(statusCode).json({
-    success: false,
-    message: message,
-    ...(process.env.NODE_ENV === 'development' && { 
-      stack: err.stack,
-      error: err.name || 'Unknown Error'
+    [constants.RESPONSE_KEYS.SUCCESS]: false,
+    [constants.RESPONSE_KEYS.MESSAGE]: message,
+    ...(process.env.NODE_ENV === constants.ENV.DEVELOPMENT && { 
+      [constants.RESPONSE_KEYS.STACK]: err.stack,
+      [constants.RESPONSE_KEYS.ERROR]: err.name || 'Unknown Error'
     })
   });
 };

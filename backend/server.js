@@ -8,6 +8,7 @@ const rateLimit = require('express-rate-limit');
 const db = require('./models');
 const config = require('./config/config');
 const errorHandler = require('./middleware/errorHandler');
+const constants = require('./constants');
 
 // Initialize queue workers
 if (process.env.REDIS_HOST) {
@@ -57,27 +58,27 @@ app.use(cors({
     }
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  methods: Object.values(constants.HTTP_METHODS),
+  allowedHeaders: [constants.HTTP_HEADERS.CONTENT_TYPE, constants.HTTP_HEADERS.AUTHORIZATION]
 }));
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
+  windowMs: constants.RATE_LIMIT.WINDOW_MS,
+  max: constants.RATE_LIMIT.MAX_REQUESTS
 });
 app.use('/api/', limiter);
 
 // Body parsing middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: constants.FILE_UPLOAD.MAX_SIZE_MB }));
+app.use(express.urlencoded({ extended: true, limit: constants.FILE_UPLOAD.MAX_SIZE_MB }));
 app.use(cookieParser());
 
 // Stripe webhook needs raw body
-app.use('/api/payments/stripe-webhook', express.raw({ type: 'application/json' }));
+app.use('/api/payments/stripe-webhook', express.raw({ type: constants.CONTENT_TYPES.JSON }));
 
 // Logging
-if (config.nodeEnv === 'development') {
+if (config.nodeEnv === constants.ENV.DEVELOPMENT) {
   app.use(morgan('dev'));
 } else {
   app.use(morgan('combined'));
@@ -86,62 +87,62 @@ if (config.nodeEnv === 'development') {
 // Root route
 app.get('/', (req, res) => {
   res.json({
-    success: true,
-    message: 'AUDioHub API',
-    version: '1.0.0',
-    endpoints: {
-      auth: '/api/auth',
-      audio: '/api/audio',
-      plans: '/api/plans',
-      subscriptions: '/api/subscriptions',
-      affiliate: '/api/affiliate',
-      analytics: '/api/analytics'
+    [constants.RESPONSE_KEYS.SUCCESS]: true,
+    [constants.RESPONSE_KEYS.MESSAGE]: constants.APP_DESCRIPTION,
+    [constants.RESPONSE_KEYS.VERSION]: constants.APP_VERSION,
+    [constants.RESPONSE_KEYS.ENDPOINTS]: {
+      auth: constants.API_ENDPOINTS.AUTH,
+      audio: constants.API_ENDPOINTS.AUDIO,
+      plans: constants.API_ENDPOINTS.PLANS,
+      subscriptions: constants.API_ENDPOINTS.SUBSCRIPTIONS,
+      affiliate: constants.API_ENDPOINTS.AFFILIATE,
+      analytics: constants.API_ENDPOINTS.ANALYTICS
     },
-    health: '/health',
-    timestamp: new Date().toISOString()
+    [constants.RESPONSE_KEYS.HEALTH]: constants.API_ENDPOINTS.HEALTH,
+    [constants.RESPONSE_KEYS.TIMESTAMP]: new Date().toISOString()
   });
 });
 
 // Health check
-app.get('/health', (req, res) => {
+app.get(constants.API_ENDPOINTS.HEALTH, (req, res) => {
   res.json({
-    success: true,
-    message: 'Server is running',
-    timestamp: new Date().toISOString()
+    [constants.RESPONSE_KEYS.SUCCESS]: true,
+    [constants.RESPONSE_KEYS.MESSAGE]: constants.MESSAGES.SERVER_RUNNING,
+    [constants.RESPONSE_KEYS.TIMESTAMP]: new Date().toISOString()
   });
 });
 
 // Public share routes (must be before API routes for proper matching)
 app.use('/', shareRoutes);
-app.use('/f', publicFolderRoutes);
+app.use(constants.PUBLIC_ROUTES.FOLDER_SHARE, publicFolderRoutes);
 
 // API routes
-app.use('/api/auth', authRoutes);
-app.use('/api/email', emailRoutes);
-app.use('/api/audio', audioRoutes);
-app.use('/api/bulk', bulkRoutes);
-app.use('/api/search', searchRoutes);
-app.use('/api/plans', planRoutes);
-app.use('/api/subscriptions', subscriptionRoutes);
-app.use('/api/affiliate', affiliateRoutes);
-app.use('/api/analytics', analyticsRoutes);
-app.use('/api/folders', folderRoutes);
-app.use('/api/encoding', encodingRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/api-keys', apiKeyRoutes);
-app.use('/api/playlists', playlistRoutes);
-app.use('/api/interactions', interactionRoutes);
-app.use('/api/trash', trashRoutes);
-app.use('/api/webhooks', webhookRoutes);
-app.use('/api/remote-upload', remoteUploadRoutes);
-app.use('/api/payments', paymentRoutes);
-app.use('/api/analytics', analyticsExportRoutes);
+app.use(constants.API_ENDPOINTS.AUTH, authRoutes);
+app.use(constants.API_ENDPOINTS.EMAIL, emailRoutes);
+app.use(constants.API_ENDPOINTS.AUDIO, audioRoutes);
+app.use(constants.API_ENDPOINTS.BULK, bulkRoutes);
+app.use(constants.API_ENDPOINTS.SEARCH, searchRoutes);
+app.use(constants.API_ENDPOINTS.PLANS, planRoutes);
+app.use(constants.API_ENDPOINTS.SUBSCRIPTIONS, subscriptionRoutes);
+app.use(constants.API_ENDPOINTS.AFFILIATE, affiliateRoutes);
+app.use(constants.API_ENDPOINTS.ANALYTICS, analyticsRoutes);
+app.use(constants.API_ENDPOINTS.FOLDERS, folderRoutes);
+app.use(constants.API_ENDPOINTS.ENCODING, encodingRoutes);
+app.use(constants.API_ENDPOINTS.ADMIN, adminRoutes);
+app.use(constants.API_ENDPOINTS.API_KEYS, apiKeyRoutes);
+app.use(constants.API_ENDPOINTS.PLAYLISTS, playlistRoutes);
+app.use(constants.API_ENDPOINTS.INTERACTIONS, interactionRoutes);
+app.use(constants.API_ENDPOINTS.TRASH, trashRoutes);
+app.use(constants.API_ENDPOINTS.WEBHOOKS, webhookRoutes);
+app.use(constants.API_ENDPOINTS.REMOTE_UPLOAD, remoteUploadRoutes);
+app.use(constants.API_ENDPOINTS.PAYMENTS, paymentRoutes);
+app.use(constants.API_ENDPOINTS.ANALYTICS, analyticsExportRoutes);
 
 // 404 handler
 app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    message: 'Route not found'
+  res.status(constants.HTTP_STATUS.NOT_FOUND).json({
+    [constants.RESPONSE_KEYS.SUCCESS]: false,
+    [constants.RESPONSE_KEYS.MESSAGE]: constants.MESSAGES.ROUTE_NOT_FOUND
   });
 });
 
@@ -153,7 +154,7 @@ const PORT = config.port;
 
 db.sequelize.authenticate()
   .then(() => {
-    console.log('Database connection established successfully.');
+    console.log(constants.MESSAGES.DB_CONNECTION_ESTABLISHED);
     
     // Don't use sync with alter - use migrations instead
     // Sync only creates tables if they don't exist (force: false)
@@ -183,7 +184,7 @@ db.sequelize.authenticate()
     });
   })
   .then(() => {
-    console.log('Database connection ready.');
+    console.log(constants.MESSAGES.DB_CONNECTION_READY);
     console.log('Note: Run migrations for schema changes: npm run db:migrate');
     
     app.listen(PORT, () => {
@@ -192,7 +193,7 @@ db.sequelize.authenticate()
     });
   })
   .catch((err) => {
-    console.error('Unable to connect to the database:', err);
+    console.error(constants.MESSAGES.DB_CONNECTION_ERROR, err);
     process.exit(1);
   });
 

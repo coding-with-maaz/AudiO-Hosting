@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const crypto = require('crypto');
+const constants = require('../constants');
 
 // Generate share token
 const generateShareToken = () => {
@@ -21,9 +22,9 @@ exports.getDirectLink = async (req, res, next) => {
     });
 
     if (!audio || !audio.isActive) {
-      return res.status(404).json({
-        success: false,
-        message: 'Audio not found'
+      return res.status(constants.HTTP_STATUS.NOT_FOUND).json({
+        [constants.RESPONSE_KEYS.SUCCESS]: false,
+        [constants.RESPONSE_KEYS.MESSAGE]: constants.MESSAGES.AUDIO_NOT_FOUND
       });
     }
 
@@ -39,9 +40,9 @@ exports.getDirectLink = async (req, res, next) => {
 
     // Check access
     if (!audio.isPublic && audio.userId !== req.user?.id) {
-      return res.status(403).json({
-        success: false,
-        message: 'Access denied'
+      return res.status(constants.HTTP_STATUS.FORBIDDEN).json({
+        [constants.RESPONSE_KEYS.SUCCESS]: false,
+        [constants.RESPONSE_KEYS.MESSAGE]: constants.MESSAGES.ACCESS_DENIED
       });
     }
 
@@ -65,13 +66,15 @@ exports.getDirectLink = async (req, res, next) => {
     }
 
     const baseUrl = `${req.protocol}://${req.get('host')}`;
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
-    const embedUrl = `${frontendUrl}/e/${audio.shareToken}`;
-    const embedUrlTransparent = `${frontendUrl}/e/${audio.shareToken}?transparent=true`;
+    const frontendUrl = constants.URLS.DEFAULT_FRONTEND_URL;
+    const embedUrl = `${frontendUrl}${constants.PUBLIC_ROUTES.EMBED}/${audio.shareToken}`;
+    const embedUrlTransparent = `${embedUrl}?${constants.QUERY_PARAMS.TRANSPARENT}=${constants.BOOLEAN_STRINGS.TRUE}`;
+    const embedUrlCompact = `${embedUrl}?${constants.QUERY_PARAMS.COMPACT}=${constants.BOOLEAN_STRINGS.TRUE}`;
+    const embedUrlAutoplay = `${embedUrl}?${constants.QUERY_PARAMS.AUTOPLAY}=${constants.BOOLEAN_STRINGS.TRUE}`;
 
     res.json({
-      success: true,
-      data: {
+      [constants.RESPONSE_KEYS.SUCCESS]: true,
+      [constants.RESPONSE_KEYS.DATA]: {
         audio: {
           id: audio.id,
           title: audio.title,
@@ -79,16 +82,16 @@ exports.getDirectLink = async (req, res, next) => {
           fileSize: audio.fileSize
         },
         links: {
-          directDownload: `${baseUrl}/d/${audio.shareToken}`,
+          directDownload: `${baseUrl}${constants.PUBLIC_ROUTES.DIRECT_DOWNLOAD}/${audio.shareToken}`,
           embed: embedUrl,
           embedTransparent: embedUrlTransparent,
           embedCodes: {
-            standard: `<iframe src="${embedUrl}" width="100%" height="400" frameborder="0" allow="autoplay" style="border-radius: 12px;"></iframe>`,
-            transparent: `<iframe src="${embedUrlTransparent}" width="100%" height="400" frameborder="0" allow="autoplay" style="background: transparent; border: none;"></iframe>`,
-            minimal: `<iframe src="${embedUrl}?compact=true" width="100%" height="120" frameborder="0" allow="autoplay" style="border-radius: 8px;"></iframe>`,
-            compactTransparent: `<iframe src="${embedUrlTransparent}&compact=true" width="100%" height="120" frameborder="0" allow="autoplay" style="background: transparent; border: none;"></iframe>`,
-            autoPlay: `<iframe src="${embedUrl}?autoplay=true" width="100%" height="400" frameborder="0" allow="autoplay" style="border-radius: 12px;"></iframe>`,
-            autoPlayTransparent: `<iframe src="${embedUrlTransparent}&autoplay=true" width="100%" height="400" frameborder="0" allow="autoplay" style="background: transparent; border: none;"></iframe>`
+            standard: constants.EMBED_TEMPLATES.STANDARD(embedUrl),
+            transparent: constants.EMBED_TEMPLATES.TRANSPARENT(embedUrlTransparent),
+            minimal: constants.EMBED_TEMPLATES.MINIMAL(embedUrlCompact),
+            compactTransparent: constants.EMBED_TEMPLATES.COMPACT_TRANSPARENT(`${embedUrlTransparent}&${constants.QUERY_PARAMS.COMPACT}=${constants.BOOLEAN_STRINGS.TRUE}`),
+            autoPlay: constants.EMBED_TEMPLATES.AUTOPLAY(embedUrlAutoplay),
+            autoPlayTransparent: constants.EMBED_TEMPLATES.AUTOPLAY_TRANSPARENT(`${embedUrlTransparent}&${constants.QUERY_PARAMS.AUTOPLAY}=${constants.BOOLEAN_STRINGS.TRUE}`)
           }
         }
       }
@@ -130,9 +133,9 @@ exports.serveDirectDownload = async (req, res, next) => {
     });
 
     if (!audio) {
-      return res.status(404).json({
-        success: false,
-        message: 'Audio not found'
+      return res.status(constants.HTTP_STATUS.NOT_FOUND).json({
+        [constants.RESPONSE_KEYS.SUCCESS]: false,
+        [constants.RESPONSE_KEYS.MESSAGE]: constants.MESSAGES.AUDIO_NOT_FOUND
       });
     }
 
@@ -148,26 +151,26 @@ exports.serveDirectDownload = async (req, res, next) => {
     }
     
     if (!audio.isPublic && !hasShareToken && !isOwner) {
-      return res.status(403).json({
-        success: false,
-        message: 'Access denied'
+      return res.status(constants.HTTP_STATUS.FORBIDDEN).json({
+        [constants.RESPONSE_KEYS.SUCCESS]: false,
+        [constants.RESPONSE_KEYS.MESSAGE]: constants.MESSAGES.ACCESS_DENIED
       });
     }
-
+    
     // Check password if set
     if (audio.password) {
       if (!password || audio.password !== password) {
-        return res.status(401).json({
-          success: false,
-          message: 'Password required or incorrect'
+        return res.status(constants.HTTP_STATUS.UNAUTHORIZED).json({
+          [constants.RESPONSE_KEYS.SUCCESS]: false,
+          [constants.RESPONSE_KEYS.MESSAGE]: constants.MESSAGES.PASSWORD_REQUIRED
         });
       }
     }
 
     if (!fs.existsSync(audio.filePath)) {
-      return res.status(404).json({
-        success: false,
-        message: 'File not found on server'
+      return res.status(constants.HTTP_STATUS.NOT_FOUND).json({
+        [constants.RESPONSE_KEYS.SUCCESS]: false,
+        [constants.RESPONSE_KEYS.MESSAGE]: constants.MESSAGES.FILE_NOT_FOUND
       });
     }
 
@@ -212,12 +215,12 @@ exports.serveEmbed = async (req, res, next) => {
     });
 
     if (!audio) {
-      return res.status(404).send('Audio not found');
+      return res.status(constants.HTTP_STATUS.NOT_FOUND).send(constants.MESSAGES.AUDIO_NOT_FOUND);
     }
 
     // Check access
     if (!audio.isPublic && audio.userId !== req.user?.id) {
-      return res.status(403).send('Access denied');
+      return res.status(constants.HTTP_STATUS.FORBIDDEN).send(constants.MESSAGES.ACCESS_DENIED);
     }
 
     // Track play
@@ -231,7 +234,7 @@ exports.serveEmbed = async (req, res, next) => {
     await audio.increment('views');
 
     // Redirect to frontend embed page with custom player
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
+    const frontendUrl = constants.URLS.DEFAULT_FRONTEND_URL;
     const embedToken = audio.shareToken || audio.id;
     
     // Return HTML that redirects to frontend embed page
