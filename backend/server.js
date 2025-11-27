@@ -191,10 +191,13 @@ db.sequelize.authenticate()
     console.log(constants.MESSAGES.DB_CONNECTION_READY);
     console.log('Note: Run migrations for schema changes: npm run db:migrate');
     
-    app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
-      console.log(`Environment: ${config.nodeEnv}`);
-    });
+    // Only start server if not in test environment
+    if (process.env.NODE_ENV !== 'test') {
+      app.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
+        console.log(`Environment: ${config.nodeEnv}`);
+      });
+    }
   })
   .catch((err) => {
     console.error(constants.MESSAGES.DB_CONNECTION_ERROR, err);
