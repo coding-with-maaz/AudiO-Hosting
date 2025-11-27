@@ -14,6 +14,7 @@ const constants = require('./utils/constants');
 if (process.env.REDIS_HOST) {
   require('./workers/encodingWorker');
   require('./workers/cleanupWorker');
+  require('./workers/supportWorker');
 }
 
 // Import routes
@@ -39,6 +40,7 @@ const webhookRoutes = require('./routes/webhooks');
 const remoteUploadRoutes = require('./routes/remoteUpload');
 const paymentRoutes = require('./routes/payments');
 const analyticsExportRoutes = require('./routes/analyticsExport');
+const contactRoutes = require('./routes/contact');
 
 const app = express();
 
@@ -137,6 +139,8 @@ app.use(constants.API_ENDPOINTS.WEBHOOKS, webhookRoutes);
 app.use(constants.API_ENDPOINTS.REMOTE_UPLOAD, remoteUploadRoutes);
 app.use(constants.API_ENDPOINTS.PAYMENTS, paymentRoutes);
 app.use(constants.API_ENDPOINTS.ANALYTICS, analyticsExportRoutes);
+app.use(constants.API_ENDPOINTS.CONTACT, contactRoutes);
+app.use(constants.API_ENDPOINTS.SUPPORT, contactRoutes);
 
 // 404 handler
 app.use((req, res) => {

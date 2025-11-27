@@ -69,8 +69,39 @@ module.exports = {
       }
     });
 
+    // Helper function to add column if it doesn't exist
+    const addColumnIfNotExists = async (tableName, columnName, columnDefinition) => {
+      try {
+        const tableDescription = await queryInterface.describeTable(tableName);
+        if (!tableDescription[columnName]) {
+          await queryInterface.addColumn(tableName, columnName, columnDefinition);
+        } else {
+          console.log(`Column ${tableName}.${columnName} already exists, skipping...`);
+        }
+      } catch (error) {
+        if (error.message && error.message.includes('Duplicate column name')) {
+          console.log(`Column ${tableName}.${columnName} already exists, skipping...`);
+        } else {
+          throw error;
+        }
+      }
+    };
+
+    // Helper function to add index if it doesn't exist
+    const addIndexIfNotExists = async (tableName, fields, options = {}) => {
+      try {
+        await queryInterface.addIndex(tableName, fields, options);
+      } catch (error) {
+        if (error.message && error.message.includes('Duplicate key name')) {
+          console.log(`Index on ${tableName}(${fields.join(', ')}) already exists, skipping...`);
+        } else {
+          throw error;
+        }
+      }
+    };
+
     // Add folderId and sharing fields to audios table
-    await queryInterface.addColumn('audios', 'folderId', {
+    await addColumnIfNotExists('audios', 'folderId', {
       type: Sequelize.UUID,
       allowNull: true,
       references: {
@@ -81,24 +112,24 @@ module.exports = {
       onDelete: 'SET NULL'
     });
 
-    await queryInterface.addColumn('audios', 'shareToken', {
+    await addColumnIfNotExists('audios', 'shareToken', {
       type: Sequelize.STRING(100),
       allowNull: true,
       unique: true
     });
 
-    await queryInterface.addColumn('audios', 'password', {
+    await addColumnIfNotExists('audios', 'password', {
       type: Sequelize.STRING(255),
       allowNull: true
     });
 
     // Add indexes
-    await queryInterface.addIndex('folders', ['userId']);
-    await queryInterface.addIndex('folders', ['parentFolderId']);
-    await queryInterface.addIndex('folders', ['shareToken'], { unique: true });
-    await queryInterface.addIndex('folders', ['isPublic', 'isShared']);
-    await queryInterface.addIndex('audios', ['folderId']);
-    await queryInterface.addIndex('audios', ['shareToken'], { unique: true });
+    await addIndexIfNotExists('folders', ['userId']);
+    await addIndexIfNotExists('folders', ['parentFolderId']);
+    await addIndexIfNotExists('folders', ['shareToken'], { unique: true });
+    await addIndexIfNotExists('folders', ['isPublic', 'isShared']);
+    await addIndexIfNotExists('audios', ['folderId']);
+    await addIndexIfNotExists('audios', ['shareToken'], { unique: true });
   },
 
   down: async (queryInterface, Sequelize) => {

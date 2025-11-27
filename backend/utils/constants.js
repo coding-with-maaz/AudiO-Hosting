@@ -82,7 +82,19 @@ const MESSAGES = {
   
   // Share
   SHARING_ENABLED: 'Sharing enabled',
-  SHARING_DISABLED: 'Sharing disabled'
+  SHARING_DISABLED: 'Sharing disabled',
+  
+  // Contact/Support
+  CONTACT_SUBMITTED: 'Contact message submitted successfully',
+  CONTACT_NOT_FOUND: 'Contact message not found',
+  CONTACT_UPDATED: 'Contact message updated successfully',
+  CONTACT_DELETED: 'Contact message deleted successfully',
+  INVALID_CATEGORY: 'Invalid category',
+  INVALID_PRIORITY: 'Invalid priority',
+  INVALID_STATUS: 'Invalid status',
+  RESPONSE_REQUIRED: 'Response is required',
+  TICKET_ASSIGNED: 'Ticket assigned successfully',
+  TICKET_RESOLVED: 'Ticket resolved successfully'
 };
 
 // API Endpoints
@@ -107,6 +119,8 @@ const API_ENDPOINTS = {
   SEARCH: '/api/search',
   EMAIL: '/api/email',
   SHARE: '/api/share',
+  CONTACT: '/api/contact',
+  SUPPORT: '/api/support',
   HEALTH: '/health'
 };
 

@@ -555,26 +555,38 @@ module.exports = {
       }
     });
 
-    // Add indexes
-    await queryInterface.addIndex('audios', ['userId']);
-    await queryInterface.addIndex('audios', ['isPublic', 'isActive']);
-    await queryInterface.addIndex('audios', ['createdAt']);
-    await queryInterface.addIndex('affiliates', ['affiliateCode'], { unique: true });
-    await queryInterface.addIndex('affiliates', ['userId']);
-    await queryInterface.addIndex('subscriptions', ['userId']);
-    await queryInterface.addIndex('subscriptions', ['planId']);
-    await queryInterface.addIndex('subscriptions', ['status']);
-    await queryInterface.addIndex('subscriptions', ['endDate']);
-    await queryInterface.addIndex('transactions', ['userId']);
-    await queryInterface.addIndex('transactions', ['affiliateId']);
-    await queryInterface.addIndex('transactions', ['status']);
-    await queryInterface.addIndex('transactions', ['type']);
-    await queryInterface.addIndex('transactions', ['createdAt']);
-    await queryInterface.addIndex('analytics', ['userId']);
-    await queryInterface.addIndex('analytics', ['audioId']);
-    await queryInterface.addIndex('analytics', ['eventType']);
-    await queryInterface.addIndex('analytics', ['createdAt']);
-    await queryInterface.addIndex('analytics', ['country']);
+    // Add indexes (with error handling for existing indexes)
+    // Note: userId indexes are automatically created by foreign key constraints
+    const addIndexIfNotExists = async (tableName, fields, options = {}) => {
+      try {
+        await queryInterface.addIndex(tableName, fields, options);
+      } catch (error) {
+        if (error.message && error.message.includes('Duplicate key name')) {
+          console.log(`Index on ${tableName}(${fields.join(', ')}) already exists, skipping...`);
+        } else {
+          throw error;
+        }
+      }
+    };
+
+    await addIndexIfNotExists('audios', ['isPublic', 'isActive']);
+    await addIndexIfNotExists('audios', ['createdAt']);
+    await addIndexIfNotExists('affiliates', ['affiliateCode'], { unique: true });
+    await addIndexIfNotExists('affiliates', ['userId']);
+    await addIndexIfNotExists('subscriptions', ['userId']);
+    await addIndexIfNotExists('subscriptions', ['planId']);
+    await addIndexIfNotExists('subscriptions', ['status']);
+    await addIndexIfNotExists('subscriptions', ['endDate']);
+    await addIndexIfNotExists('transactions', ['userId']);
+    await addIndexIfNotExists('transactions', ['affiliateId']);
+    await addIndexIfNotExists('transactions', ['status']);
+    await addIndexIfNotExists('transactions', ['type']);
+    await addIndexIfNotExists('transactions', ['createdAt']);
+    await addIndexIfNotExists('analytics', ['userId']);
+    await addIndexIfNotExists('analytics', ['audioId']);
+    await addIndexIfNotExists('analytics', ['eventType']);
+    await addIndexIfNotExists('analytics', ['createdAt']);
+    await addIndexIfNotExists('analytics', ['country']);
   },
 
   down: async (queryInterface, Sequelize) => {

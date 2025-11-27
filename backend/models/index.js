@@ -35,6 +35,7 @@ db.PlaylistAudio = require('./PlaylistAudio')(sequelize, Sequelize.DataTypes);
 db.Favorite = require('./Favorite')(sequelize, Sequelize.DataTypes);
 db.Comment = require('./Comment')(sequelize, Sequelize.DataTypes);
 db.Rating = require('./Rating')(sequelize, Sequelize.DataTypes);
+db.Contact = require('./Contact')(sequelize, Sequelize.DataTypes);
 
 // Define associations
 Object.keys(db).forEach(modelName => {

@@ -39,9 +39,23 @@ const cleanupQueue = new Queue('cleanup', {
   }
 });
 
+const supportQueue = new Queue('support', {
+  redis: redisConfig,
+  defaultJobOptions: {
+    attempts: 3,
+    backoff: {
+      type: 'exponential',
+      delay: 2000
+    },
+    removeOnComplete: true,
+    removeOnFail: false
+  }
+});
+
 module.exports = {
   encodingQueue,
   emailQueue,
-  cleanupQueue
+  cleanupQueue,
+  supportQueue
 };
 
