@@ -156,53 +156,53 @@ app.use(errorHandler);
 // Database connection and server start
 const PORT = config.port;
 
-db.sequelize.authenticate()
-  .then(() => {
-    console.log(constants.MESSAGES.DB_CONNECTION_ESTABLISHED);
-    
-    // Don't use sync with alter - use migrations instead
-    // Sync only creates tables if they don't exist (force: false)
-    // Use migrations for schema changes: npm run db:migrate
-    return db.sequelize.sync({ alter: false }).then(async () => {
-      // Add allowedDomains column if it doesn't exist
-      try {
-        const queryInterface = db.sequelize.getQueryInterface();
-        const tableDescription = await queryInterface.describeTable('api_keys');
-        
-        if (!tableDescription.allowedDomains) {
-          console.log('Adding allowedDomains column to api_keys table...');
-          await queryInterface.addColumn('api_keys', 'allowedDomains', {
-            type: db.sequelize.Sequelize.JSON,
-            allowNull: true,
-            defaultValue: [],
-            comment: 'Array of allowed domains for API key usage'
-          });
-          console.log('allowedDomains column added successfully.');
+// Skip database connection in test mode - tests will handle their own connections
+if (process.env.NODE_ENV !== 'test') {
+  db.sequelize.authenticate()
+    .then(() => {
+      console.log(constants.MESSAGES.DB_CONNECTION_ESTABLISHED);
+      
+      // Don't use sync with alter - use migrations instead
+      // Sync only creates tables if they don't exist (force: false)
+      // Use migrations for schema changes: npm run db:migrate
+      return db.sequelize.sync({ alter: false }).then(async () => {
+        // Add allowedDomains column if it doesn't exist
+        try {
+          const queryInterface = db.sequelize.getQueryInterface();
+          const tableDescription = await queryInterface.describeTable('api_keys');
+          
+          if (!tableDescription.allowedDomains) {
+            console.log('Adding allowedDomains column to api_keys table...');
+            await queryInterface.addColumn('api_keys', 'allowedDomains', {
+              type: db.sequelize.Sequelize.JSON,
+              allowNull: true,
+              defaultValue: [],
+              comment: 'Array of allowed domains for API key usage'
+            });
+            console.log('allowedDomains column added successfully.');
+          }
+        } catch (error) {
+          // Column might already exist or table might not exist yet
+          if (error.message && !error.message.includes('Duplicate column name')) {
+            console.error('Error checking/adding allowedDomains column:', error.message);
+          }
         }
-      } catch (error) {
-        // Column might already exist or table might not exist yet
-        if (error.message && !error.message.includes('Duplicate column name')) {
-          console.error('Error checking/adding allowedDomains column:', error.message);
-        }
-      }
-    });
-  })
-  .then(() => {
-    console.log(constants.MESSAGES.DB_CONNECTION_READY);
-    console.log('Note: Run migrations for schema changes: npm run db:migrate');
-    
-    // Only start server if not in test environment
-    if (process.env.NODE_ENV !== 'test') {
+      });
+    })
+    .then(() => {
+      console.log(constants.MESSAGES.DB_CONNECTION_READY);
+      console.log('Note: Run migrations for schema changes: npm run db:migrate');
+      
       app.listen(PORT, () => {
         console.log(`Server is running on port ${PORT}`);
         console.log(`Environment: ${config.nodeEnv}`);
       });
-    }
-  })
-  .catch((err) => {
-    console.error(constants.MESSAGES.DB_CONNECTION_ERROR, err);
-    process.exit(1);
-  });
+    })
+    .catch((err) => {
+      console.error(constants.MESSAGES.DB_CONNECTION_ERROR, err);
+      process.exit(1);
+    });
+}
 
 // Graceful shutdown
 process.on('SIGTERM', async () => {
