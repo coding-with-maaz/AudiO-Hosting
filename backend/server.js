@@ -8,7 +8,7 @@ const rateLimit = require('express-rate-limit');
 const db = require('./models');
 const config = require('./config/config');
 const errorHandler = require('./middleware/errorHandler');
-const constants = require('./constants');
+const constants = require('./utils/constants');
 
 // Initialize queue workers
 if (process.env.REDIS_HOST) {

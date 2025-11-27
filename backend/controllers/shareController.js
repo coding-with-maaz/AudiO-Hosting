@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 const crypto = require('crypto');
-const constants = require('../constants');
+const constants = require('../utils/constants');
 
 // Generate share token
 const generateShareToken = () => {

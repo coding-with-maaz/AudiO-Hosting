@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 const config = require('../config/config');
 const db = require('../models');
 const apiKeyAuth = require('./apiKeyAuth');
-const constants = require('../constants');
+const constants = require('../utils/constants');
 
 const authenticate = async (req, res, next) => {
   try {

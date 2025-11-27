@@ -1,5 +1,5 @@
 require('dotenv').config();
-const constants = require('../constants');
+const constants = require('../utils/constants');
 
 module.exports = {
   development: {

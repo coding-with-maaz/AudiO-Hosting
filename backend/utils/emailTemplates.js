@@ -1,5 +1,5 @@
 const config = require('../config/config');
-const constants = require('../constants');
+const constants = require('./constants');
 
 const baseUrl = constants.URLS.DEFAULT_BASE;
 

@@ -2,7 +2,7 @@ const db = require('../models');
 const crypto = require('crypto');
 const transporter = require('../config/email');
 const emailTemplates = require('../utils/emailTemplates');
-const constants = require('../constants');
+const constants = require('../utils/constants');
 
 exports.sendVerificationEmail = async (userId) => {
   try {
